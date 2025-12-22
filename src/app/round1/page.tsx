@@ -180,45 +180,45 @@ export default function Round1Page() {
         {/* Stats Dashboard */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-0 mb-6 sm:mb-8 border border-white/10">
           {/* Score */}
-          <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/10 group hover:bg-white transition-colors duration-300">
-            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-black/40 transition-colors">
+          <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/10 group hover:bg-white/10 transition-colors duration-300">
+            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-white transition-colors">
               Total Score
             </p>
             <div className="flex items-end gap-2">
-              <span className="text-5xl sm:text-6xl font-display font-bold group-hover:text-black transition-colors">
+              <span className="text-5xl sm:text-6xl font-nums font-extrabold group-hover:text-white transition-colors">
                 {progress?.currentScore || 0}
               </span>
-              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-black/20 transition-colors">
+              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-white/60 transition-colors">
                 PTS
               </span>
             </div>
           </div>
 
           {/* Solved Count */}
-          <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/10 group hover:bg-white transition-colors duration-300">
-            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-black/40 transition-colors">
+          <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/10 group hover:bg-white/10 transition-colors duration-300">
+            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-white transition-colors">
               Problems Solved
             </p>
             <div className="flex items-end gap-2">
-              <span className="text-5xl sm:text-6xl font-display font-bold group-hover:text-black transition-colors">
+              <span className="text-5xl sm:text-6xl font-nums font-extrabold group-hover:text-white transition-colors">
                 {progress?.solvedIndices?.length || 0}
               </span>
-              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-black/20 transition-colors">
+              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-white/60 transition-colors">
                 / 09
               </span>
             </div>
           </div>
 
           {/* Bingo Lines */}
-          <div className="p-4 sm:p-5 group hover:bg-white transition-colors duration-300">
-            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-black/40 transition-colors">
+          <div className="p-4 sm:p-5 group hover:bg-white/10 transition-colors duration-300">
+            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-white transition-colors">
               Bingo Lines
             </p>
             <div className="flex items-end gap-2">
-              <span className="text-5xl sm:text-6xl font-display font-bold group-hover:text-black transition-colors">
+              <span className="text-5xl sm:text-6xl font-nums font-extrabold group-hover:text-white transition-colors">
                 {progress?.bingoLines?.length || 0}
               </span>
-              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-black/20 transition-colors">
+              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-white/60 transition-colors">
                 BINGOS
               </span>
             </div>
@@ -330,3 +330,4 @@ export default function Round1Page() {
     </div>
   );
 }
+  

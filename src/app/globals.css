@@ -59,6 +59,23 @@ body::before {
   font-family: var(--font-ui);
 }
 
+/* Numeric display: thick, modern sans-serif for prominent numbers */
+.font-nums {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Font size +2% for better visibility */
+.text-xs-plus {
+  font-size: 0.765rem; /* 0.75rem * 1.02 */
+}
+
+.text-base-plus {
+  font-size: 1.02rem; /* 1rem * 1.02 */
+}
+
 /* Liquid Chrome Effect */
 .chrome-text {
   background: linear-gradient(180deg,

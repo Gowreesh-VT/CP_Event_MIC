@@ -66,7 +66,7 @@ export function GridCell({ problem, isSolved, isBingoCell = false }: GridCellPro
             {/* problem title */}
             <div className="z-10 text-center relative px-2">
                 <p className={`
-                    text-xs sm:text-base font-display font-medium tracking-tight mb-1 line-clamp-2
+                    text-xs-plus sm:text-base-plus font-display font-semibold tracking-tight mb-1 line-clamp-2
                     ${isSolved ? 'text-black' : 'text-white'}
                 `}>
                     {problem.name || `Problem ${problem.problemIndex}`}
