@@ -178,52 +178,75 @@ export default function Round1Page() {
         </header>
 
         {/* Stats Dashboard */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-0 mb-6 sm:mb-8 border border-white/10">
-          {/* Score */}
-          <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/10 group hover:bg-white transition-colors duration-300">
-            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-black/40 transition-colors">
-              Total Score
-            </p>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl sm:text-6xl font-display font-bold group-hover:text-black transition-colors">
-                {progress?.currentScore || 0}
-              </span>
-              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-black/20 transition-colors">
-                PTS
-              </span>
-            </div>
-          </div>
+{/* Stats Dashboard */}
+<section className="flex justify-center mb-12 sm:mb-16">
+  <div
+    className="
+      flex w-full max-w-md sm:max-w-3xl
+      bg-[#0b0b0b]
+      rounded-3xl
+      border border-white/10
+      overflow-hidden
+      shadow-[0_10px_40px_rgba(0,0,0,0.6)]
+    "
+  >
+    {/* TOTAL SCORE */}
+    <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4 text-center">
+      <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1">
+        Total Score
+      </p>
+      <div className="flex items-end justify-center gap-2">
+        <span className="text-4xl sm:text-5xl font-display font-bold">
+          {progress?.currentScore || 0}
+        </span>
+        <span className="font-ui text-[10px] sm:text-xs text-white/30 mb-1">
+          PTS
+        </span>
+      </div>
+    </div>
 
-          {/* Solved Count */}
-          <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/10 group hover:bg-white transition-colors duration-300">
-            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-black/40 transition-colors">
-              Problems Solved
-            </p>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl sm:text-6xl font-display font-bold group-hover:text-black transition-colors">
-                {progress?.solvedIndices?.length || 0}
-              </span>
-              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-black/20 transition-colors">
-                / 09
-              </span>
-            </div>
-          </div>
+    {/* DIVIDER */}
+    <div className="w-px bg-white/10 my-3 sm:my-4" />
 
-          {/* Bingo Lines */}
-          <div className="p-4 sm:p-5 group hover:bg-white transition-colors duration-300">
-            <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 text-white/40 group-hover:text-black/40 transition-colors">
-              Bingo Lines
-            </p>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl sm:text-6xl font-display font-bold group-hover:text-black transition-colors">
-                {progress?.bingoLines?.length || 0}
-              </span>
-              <span className="font-ui text-[10px] sm:text-xs mb-2 text-white/20 group-hover:text-black/20 transition-colors">
-                BINGOS
-              </span>
-            </div>
-          </div>
-        </section>
+    {/* PROBLEMS SOLVED */}
+    <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4 text-center">
+      <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1">
+        Solved
+      </p>
+      <div className="flex items-end justify-center gap-2">
+        <span className="text-4xl sm:text-5xl font-display font-bold">
+          {progress?.solvedIndices?.length || 0}
+        </span>
+        <span className="font-ui text-[10px] sm:text-xs text-white/30 mb-1">
+          / 09
+        </span>
+      </div>
+    </div>
+
+    {/* DIVIDER */}
+    <div className="w-px bg-white/10 my-3 sm:my-4" />
+
+    {/* BINGO LINES */}
+    <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4 text-center">
+      <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1">
+        Bingo Lines
+      </p>
+      <div className="flex items-end justify-center gap-2">
+        <span className="text-4xl sm:text-5xl font-display font-bold">
+          {progress?.bingoLines?.length || 0}
+        </span>
+        <span className="font-ui text-[10px] sm:text-xs text-white/30 mb-1">
+          BINGOS
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<div className="flex justify-center mb-8">
+  <div className="w-24 h-[1px] bg-white/10" />
+</div>
 
         {/* Bingo Grid */}
         <div className="grid grid-cols-3 gap-0 border border-white/10 mb-6 sm:mb-8 shadow-[0_0_60px_rgba(255,255,255,0.03)]">
