@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond, Space_Mono } from "next/font/google";
 import "./globals.css";
+import CustomCursor from "@/components/CustomCursor";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${cormorant.variable} ${spaceMono.variable} antialiased`}
       >
+        <CustomCursor />
         {children}
       </body>
     </html>
