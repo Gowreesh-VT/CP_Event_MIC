@@ -6,7 +6,7 @@
 import mongoose from 'mongoose';
 import { Question } from '../src/models';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://cp_event:CpEvent2026@cpeventcluster.jmjmbmc.mongodb.net/cp-events?retryWrites=true&w=majority&appName=cpEventCluster';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://cp_event:CpEvent2026@cpeventcluster.jmjmbmc.mongodb.net/cp-events';
 
 const round1Questions = [
   { gridIndex: 0, contestId: '1928', problemIndex: 'A', name: 'Rectangle Cutting', points: 10, url: 'https://codeforces.com/contest/1928/problem/A' },
