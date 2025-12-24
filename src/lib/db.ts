@@ -1,3 +1,5 @@
+console.log("DEBUG: All Env Keys:", Object.keys(process.env).filter(key => key.includes("MONGO")));
+
 import mongoose from "mongoose";
 
 export async function connectDB() {
