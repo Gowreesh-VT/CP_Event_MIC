@@ -18,28 +18,44 @@ const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-   
+    //Allow login only if email exists in Team DB
     async signIn({ user }) {
       try {
         await connectDB();
-        const email = user.email;
-        if (!email) {
-          console.error("No email received from Google");
-          return false;
-        }
 
-        const teamExists = await Team.findOne({ email });
+        if (!user.email) return false;
 
-        if (!teamExists) {
-          console.error("Login rejected: Email not in Team DB");
-          return false; 
-        }
+        const teamExists = await Team.findOne({ email: user.email });
 
-        return true; 
+        return !!teamExists;
       } catch (error) {
         console.error("Sign-in error:", error);
         return false;
       }
+    },
+
+    //  Runs on login & every request (JWT creation)
+    async jwt({ token }) {
+      if (!token.email) return token;
+
+      await connectDB();
+
+      const team = await Team.findOne({ email: token.email });
+
+      // if team exists, check codeforcesHandle
+      token.setCodeforcesHandle = team?.codeforcesHandle == null;
+
+      return token;
+    },
+
+    // Expose value to frontend session
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.setCodeforcesHandle =
+          token.setCodeforcesHandle as boolean;
+      }
+
+      return session;
     },
   },
 });
