@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
-export function Navbar() {
+export default function Navbar() {
   const { data: session, status } = useSession();
 
   return (
@@ -40,4 +40,3 @@ export function Navbar() {
     </nav>
   );
 }
-
