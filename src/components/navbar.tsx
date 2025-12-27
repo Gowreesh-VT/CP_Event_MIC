@@ -2,37 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Terminal, Menu, X } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
-export default function Navbar() {
-  const{data:session,status}=useSession()
-  const[isloggedin,setlogin]=useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+export function Navbar() {
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
 
-  useEffect(()=>{
-    if(status=="authenticated"){
-      setlogin(true);
-    }
-  },[session])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const navLinks = [
-    { name: "Home", href: "#hero" },
-    { name: "Prizes", href: "#prizes" },
-    { name: "Sponsors", href: "#sponsors" },
-    { name: "Organizers", href: "#organizers" },
-  ];
+  const isRound2 =
+    pathname?.includes("/round2") ||
+    pathname?.includes("/leaderboard-r2");
 
   return (
     <motion.nav
@@ -78,15 +58,31 @@ export default function Navbar() {
                 LOGIN_
               </Link>}
             </div>
-          </div>
+          </Link>
 
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-300 hover:text-white p-2"
-            >
-              {isOpen ? <X /> : <Menu />}
-            </button>
+          <div className="flex items-center space-x-4">
+            {status === "loading" ? (
+              <span className="text-sm text-muted-foreground">
+                Loading...
+              </span>
+            ) : session ? (
+              <div className="flex items-center gap-2">
+                {isRound2 && (
+                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(192,132,252,0.6)]" />
+                )}
+                <span
+                  className={`text-xl font-bold ${
+                    isRound2 ? "text-purple-300" : "text-foreground"
+                  }`}
+                >
+                  {session.user?.name || "Team"}
+                </span>
+              </div>
+            ) : pathname !== "/login" ? (
+              <Link href="/login">
+                <Button>Login</Button>
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>

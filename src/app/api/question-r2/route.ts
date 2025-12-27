@@ -20,7 +20,7 @@ function shuffleArray(array: any[]) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || !session.user?.teamId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -28,8 +28,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!session.user?.hasRound2Access) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied to Round 2' },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
     const teamId = session.user.teamId;
+
     const team = await Team.findById(teamId);
     if (!team) {
       return NextResponse.json(
@@ -37,6 +45,7 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
+
     const allQuestions = await QuestionR2.find({}).sort({ gridIndex: 1 });
     if (!allQuestions || allQuestions.length === 0) {
       return NextResponse.json(
@@ -45,27 +54,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let teamScore = await TeamScoreR2.findOne({ teamId });
-    
-    if (!teamScore) {
-      const randomOrder = shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8]);
-      teamScore = await TeamScoreR2.create({
-        teamId,
-        questionOrder: randomOrder,
-        solvedIndices: [],
-        currentScore: 0,
-        bingoLines: [],
-      });
-    }
+    const randomOrder = shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8]);
 
-    const teamQuestions = teamScore.questionOrder.map((originalIndex: number, gridPosition: number) => {
-      const question = allQuestions[originalIndex];
-      return {
-        ...question.toObject(),
-        gridIndex: gridPosition,
-        originalIndex,
-      };
-    });
+    const teamScore = await TeamScoreR2.findOneAndUpdate(
+      { teamId },
+      {
+        $setOnInsert: {
+          teamId,
+          questionOrder: randomOrder,
+          solvedIndices: [],
+          currentScore: 0,
+          bingoLines: [],
+        },
+      },
+      {
+        new: true,   // return the existing or newly inserted document
+        upsert: true // insert if missing
+      }
+    );
+
+    const teamQuestions = teamScore.questionOrder.map(
+      (originalIndex: number, gridPosition: number) => {
+        const question = allQuestions[originalIndex];
+        return {
+          ...question.toObject(),
+          gridIndex: gridPosition,
+          originalIndex,
+        };
+      }
+    );
 
     const gameData = {
       name: 'Round 2',
