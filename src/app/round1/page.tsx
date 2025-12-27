@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
@@ -24,13 +25,14 @@ interface Progress {
 export default function Round1Page() {
 
 const { data: session, status } = useSession();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [isloggedin,setlogin]=useState(false);
-  useEffect(()=>{
-    if(status=="authenticated"){
-    setlogin(true);
-  }
-  },[status])
+  
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
   useEffect(() => {
     if (
       status === "authenticated" &&
@@ -170,8 +172,7 @@ const { data: session, status } = useSession();
                 Dashboard
               </button>
 
-             { isloggedin?
-             <button 
+              <button 
                 onClick={() => signOut({
                   callbackUrl:"/login"
                 })}
@@ -179,12 +180,6 @@ const { data: session, status } = useSession();
               >
                 Logout
               </button>
-             :<button 
-                onClick={() => window.location.href = '/login'}
-                className="px-4 py-2 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
-              >
-                Login
-              </button>}
             </div>
             
             <p className="font-ui text-[10px] sm:text-xs text-white/30 max-w-[280px] leading-relaxed uppercase tracking-wider text-left lg:text-right">

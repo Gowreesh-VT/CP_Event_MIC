@@ -27,11 +27,21 @@ export const authOptions: NextAuthOptions = {
       try {
         await connectDB();
 
-        if (!user.email) return false;
+        if (!user.email) {
+          console.log("Sign-in denied: No email provided in user object.");
+          return false;
+        }
 
         const teamExists = await Team.findOne({ email: user.email });
 
-        return !!teamExists;
+        if (!teamExists) {
+          console.log(`Sign-in denied: Email "${user.email}" not found in Team collection.`);
+          // Create a temporary team for development if desired, or just log failure.
+          // For now, logging failure to explain AccessDenied.
+          return false;
+        }
+
+        return true;
       } catch (error) {
         console.error("Sign-in error:", error);
         return false;
