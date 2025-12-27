@@ -12,7 +12,7 @@ import { authOptions } from '../auth/[...nextauth]/route';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
+    
     if (!session || !session.user?.teamId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -59,8 +59,9 @@ export async function GET(request: NextRequest) {
 // POST - Update
 export async function POST(request: NextRequest) {
   try {
+    // Session validation
     const session = await getServerSession(authOptions);
-
+    
     if (!session || !session.user?.teamId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
