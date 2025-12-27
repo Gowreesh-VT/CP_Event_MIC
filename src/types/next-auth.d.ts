@@ -21,3 +21,5 @@ declare module "next-auth/jwt" {
     hasRound2Access: boolean;
   }
 }
+
+
