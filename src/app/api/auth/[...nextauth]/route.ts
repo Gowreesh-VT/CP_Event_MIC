@@ -38,16 +38,20 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return baseUrl;
+      if (url === `${baseUrl}/` || url === '/') {
+        return `${baseUrl}/`;
       }
 
-      if (url.startsWith(baseUrl)) {
+      if (url === baseUrl || url === '/round1' || url === `${baseUrl}/round1`) {
         return `${baseUrl}/round1`;
       }
 
+      if (url.startsWith(baseUrl) || url.startsWith('/')) {
+        return url.startsWith('/') ? `${baseUrl}${url}` : url;
+      }
+
       console.warn(`[Security] External redirect attempt blocked: ${url}`);
-      return baseUrl + '/round1';
+      return `${baseUrl}/`;
     },
 
     async jwt({ token, trigger }) {
