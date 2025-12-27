@@ -6,8 +6,6 @@ import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
 import CodeforcesDialog from '@/components/CodeforcesHandle';
-import { useSession } from 'next-auth/react';
-import { signOut } from 'next-auth/react';
 
 
 interface GameData {

@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
-import { useSession } from 'next-auth/react';
-import { signOut } from 'next-auth/react';
 
 interface GameData {
   id: string;
@@ -31,6 +29,8 @@ export default function Round2Page() {
   const [error, setError] = useState('');
   const [teamName, setTeamName] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [isloggedin, setlogin] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -40,14 +40,11 @@ export default function Round2Page() {
     }
   }, [session, status, router]);
 
-const { data: session, status } = useSession();
-  const [open, setOpen] = useState(false);
-  const [isloggedin,setlogin]=useState(false);
-  useEffect(()=>{
-    if(status=="authenticated"){
-    setlogin(true);
-  }
-  },[status])
+  useEffect(() => {
+    if (status === "authenticated") {
+      setlogin(true);
+    }
+  }, [status])
 
 
   useEffect(() => {
