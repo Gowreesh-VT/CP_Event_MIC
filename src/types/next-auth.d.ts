@@ -8,6 +8,7 @@ declare module "next-auth" {
       image?: string | null;
       setCodeforcesHandle: boolean;
       teamId: string;
+      teamName: string;
       hasRound2Access: boolean;
     };
   }
@@ -21,3 +22,5 @@ declare module "next-auth/jwt" {
     hasRound2Access: boolean;
   }
 }
+
+
