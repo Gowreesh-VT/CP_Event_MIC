@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Terminal, Menu, X } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

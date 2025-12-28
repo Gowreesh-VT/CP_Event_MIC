@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import "tw-animate-css";
 
 /* 1. Theme Configuration */
 @theme {
@@ -174,24 +174,11 @@
     backdrop-filter: blur(16px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
-
-  .animate-scroll {
-    animation: scroll 40s linear infinite;
-  }
-  
-  .pause-on-hover:hover .animate-scroll {
-    animation-play-state: paused;
-  }
 }
 
 @keyframes shine {
   from { background-position: 50% 0%; }
   to { background-position: 50% 100%; }
-}
-
-@keyframes scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
 }
 
 ::-webkit-scrollbar { width: 6px; }

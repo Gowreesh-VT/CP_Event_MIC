@@ -4,7 +4,6 @@ import Sponsors from '@/components/Sponsors';
 import Organizers from '@/components/Organizers';
 import Navbar from "@/components/navbar";
 
-export default function Home() {
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-primary selection:text-black">
       <Navbar/>
