@@ -22,6 +22,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    //Allow login only if email exists in Team DB
     async signIn({ user }) {
       try {
         await connectDB();
@@ -34,9 +35,6 @@ export const authOptions: NextAuthOptions = {
         const teamExists = await Team.findOne({ email: user.email });
 
         if (!teamExists) {
-          console.log(`Sign-in denied: Email "${user.email}" not found in Team collection.`);
-          // Create a temporary team for development if desired, or just log failure.
-          // For now, logging failure to explain AccessDenied.
           return false;
         }
 
@@ -47,49 +45,32 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async redirect({ url, baseUrl }) {
-      if (url === `${baseUrl}/` || url === '/') {
-        return `${baseUrl}/`;
-      }
+   
 
-      if (url === baseUrl || url === '/round1' || url === `${baseUrl}/round1`) {
-        return `${baseUrl}/round1`;
-      }
+    //  Runs on login & every request (JWT creation)
+    async jwt({ token }) {
+      if (!token.email) return token;
 
-      if (url.startsWith(baseUrl) || url.startsWith('/')) {
-        return url.startsWith('/') ? `${baseUrl}${url}` : url;
-      }
+      await connectDB();
 
-      console.warn(`[Security] External redirect attempt blocked: ${url}`);
-      return `${baseUrl}/`;
-    },
+      const team = await Team.findOne({ email: token.email });
 
-    async jwt({ token, trigger }) {
-      if (trigger === 'signIn' || trigger === 'update' || !token.teamId) {
-        if (!token.email) return token;
-
-        await connectDB();
-
-        const team = await Team.findOne({ email: token.email });
-
-        if (team) {
-          token.teamId = team._id.toString();
-          token.teamName = team.teamName;
-          token.hasRound2Access = team.hasRound2Access || false;
-          token.setCodeforcesHandle = team.codeforcesHandle == null;
-        }
+      if (team) {
+        // Store teamId in token
+        token.teamId = team._id.toString();
+        // if team exists, check codeforcesHandle
+        token.setCodeforcesHandle = team.codeforcesHandle == null;
       }
 
       return token;
     },
 
+    // Expose value to frontend session
     async session({ session, token }) {
       if (session.user) {
         session.user.setCodeforcesHandle =
           token.setCodeforcesHandle as boolean;
         session.user.teamId = token.teamId as string;
-        session.user.name = token.teamName as string;
-        session.user.hasRound2Access = token.hasRound2Access as boolean;
       }
 
       return session;

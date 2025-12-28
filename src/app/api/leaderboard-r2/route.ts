@@ -38,8 +38,6 @@ export async function GET() {
                     rank: 0,
                     teamName: team.teamName,
                     score: score.currentScore,
-                    solvedCount: score.solvedIndices.length,
-                    bingoCount: score.bingoLines.length,
                     lastSubmissionTime: score.lastSubmissionTime,
                 };
             })
