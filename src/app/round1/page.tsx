@@ -5,6 +5,8 @@ import { useSession, signOut } from 'next-auth/react';
 import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
+import CodeforcesDialog from '@/components/CodeforcesHandle';
+
 
 interface GameData {
   id: string;
@@ -152,6 +154,7 @@ export default function Round1Page() {
               >
                 Advance to Round 2 →
               </button>
+
               <button 
                 onClick={handleLogoutClick}
                 className="px-4 py-2 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
