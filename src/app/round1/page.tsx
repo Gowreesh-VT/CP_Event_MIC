@@ -21,7 +21,7 @@ interface Progress {
 }
 
 export default function Round1Page() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [game, setGame] = useState<GameData | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,31 @@ export default function Round1Page() {
   const [teamName, setTeamName] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const hasRound2Access = session?.user?.hasRound2Access || false;
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (
+      status === "authenticated" &&
+      session?.user?.setCodeforcesHandle === true
+    ) {
+      setOpen(true);
+    }
+  }, [status, session]);
+
+  const handleCodeforcesSubmit = async (handle: string) => {
+    const res = await fetch("/api/team/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: session?.user?.email, codeforcesHandle: handle }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to update handle");
+    }
+
+    setOpen(false);
+  };
 
   useEffect(() => {
     const loadGameData = async () => {
@@ -327,6 +352,12 @@ export default function Round1Page() {
           </div>
         </div>
       )}
+
+      <CodeforcesDialog
+        isOpen={open}
+        onClose={() => {}}
+        onSubmit={handleCodeforcesSubmit}
+      />
     </div>
   );
 }

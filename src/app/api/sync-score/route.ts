@@ -109,7 +109,9 @@ if (rateLimit.limited) {
     );
 
     let lastSubmissionTime: Date | null = null;
-    if (scoreResult.solvedIndices.length > 0) {
+    const scoreChanged = scoreResult.currentScore !== teamScore.currentScore;
+
+    if (scoreChanged && scoreResult.solvedIndices.length > 0) {
       const solvedProblems = teamQuestions.filter((p: any) =>
         scoreResult.solvedIndices.includes(p.gridIndex)
       );
@@ -129,6 +131,8 @@ if (rateLimit.limited) {
         );
         lastSubmissionTime = new Date(latestTimestamp * 1000);
       }
+    } else if (!scoreChanged) {
+      lastSubmissionTime = teamScore.lastSubmissionTime || null;
     }
 
     await TeamScore.findOneAndUpdate(

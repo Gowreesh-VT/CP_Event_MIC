@@ -9,10 +9,8 @@ interface CodeforcesDialogProps {
 }
 
 
-
 const CodeforcesDialog : React.FC<CodeforcesDialogProps> = ({
   isOpen,
-  onClose,
   onSubmit,
 }) => {
   const [handle, setHandle] = useState("");
@@ -30,8 +28,9 @@ const CodeforcesDialog : React.FC<CodeforcesDialogProps> = ({
       await onSubmit(handle);
       setHandle("");
       setError("");
-    } catch {
-      setError("Failed to link handle. Try again.");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to link handle. Try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
