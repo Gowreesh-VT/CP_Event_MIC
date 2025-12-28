@@ -56,10 +56,10 @@ export const authOptions: NextAuthOptions = {
       const team = await Team.findOne({ email: token.email });
 
       if (team) {
-        // Store teamId in token
         token.teamId = team._id.toString();
-        // if team exists, check codeforcesHandle
+        token.teamName = team.teamName;
         token.setCodeforcesHandle = team.codeforcesHandle == null;
+        token.hasRound2Access = team.hasRound2Access || false;
       }
 
       return token;
@@ -71,6 +71,8 @@ export const authOptions: NextAuthOptions = {
         session.user.setCodeforcesHandle =
           token.setCodeforcesHandle as boolean;
         session.user.teamId = token.teamId as string;
+        session.user.teamName = token.teamName as string;
+        session.user.hasRound2Access = token.hasRound2Access as boolean;
       }
 
       return session;

@@ -2,7 +2,7 @@ import HeroSection from '@/components/Hero';
 import Prizes from '@/components/Prizes';
 import Sponsors from '@/components/Sponsors';
 import Organizers from '@/components/Organizers';
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/nav-bar";
 
 export default function Home() {
   return (

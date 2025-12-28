@@ -8,6 +8,7 @@ declare module "next-auth" {
       image?: string | null;
       setCodeforcesHandle: boolean;
       teamId: string;
+      teamName: string;
       hasRound2Access: boolean;
     };
   }
