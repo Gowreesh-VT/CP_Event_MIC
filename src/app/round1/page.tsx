@@ -5,6 +5,8 @@ import { useSession, signOut } from 'next-auth/react';
 import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
+import CodeforcesDialog from '@/components/CodeforcesHandle';
+
 
 interface GameData {
   id: string;
@@ -19,7 +21,7 @@ interface Progress {
 }
 
 export default function Round1Page() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [game, setGame] = useState<GameData | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,31 @@ export default function Round1Page() {
   const [teamName, setTeamName] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const hasRound2Access = session?.user?.hasRound2Access || false;
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (
+      status === "authenticated" &&
+      session?.user?.setCodeforcesHandle === true
+    ) {
+      setOpen(true);
+    }
+  }, [status, session]);
+
+  const handleCodeforcesSubmit = async (handle: string) => {
+    const res = await fetch("/api/team/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: session?.user?.email, codeforcesHandle: handle }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to update handle");
+    }
+
+    setOpen(false);
+  };
 
   useEffect(() => {
     const loadGameData = async () => {
@@ -122,13 +149,19 @@ export default function Round1Page() {
         {/* Header Section */}
         <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-6 sm:mb-8 border-b border-white/10 pb-4 sm:pb-6">
           <div className="flex flex-col gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-purple-500/30 bg-purple-500/10 rounded-lg w-fit mb-1">
+              <span className="w-1.5 h-1.5 bg-purple-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+              <p className="font-ui text-[10px] uppercase tracking-[0.3em] text-purple-300/80">
+                {teamName}
+              </p>
+            </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-sans font-black tracking-tighter uppercase mb-2 chrome-text">
               {game?.name || 'Round 1'}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 font-ui text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-white/40 uppercase">
+            <div className="flex flex-wrap items-center gap-4 font-ui text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-purple-300/40 uppercase">
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                <span className="w-1.5 h-1.5 bg-purple-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
                 LIVE_CONTEST
               </span>
               <span className="h-[1px] w-8 sm:w-12 bg-white/10" />
@@ -152,6 +185,7 @@ export default function Round1Page() {
               >
                 Advance to Round 2 →
               </button>
+
               <button 
                 onClick={handleLogoutClick}
                 className="px-4 py-2 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
@@ -168,9 +202,9 @@ export default function Round1Page() {
 
         {/* Stats Dashboard */}
         <section className="flex justify-center mb-12 sm:mb-16">
-          <div className="flex w-full max-w-md sm:max-w-3xl bg-[#0b0b0b] rounded-3xl border border-white/10 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+          <div className="flex w-full max-w-md sm:max-w-3xl bg-[#0b0b0b] rounded-3xl border border-purple-500/20 overflow-hidden shadow-[0_10px_40px_rgba(168,85,247,0.1)]">
             <div className="flex-1 min-w-0 py-4 sm:py-6 flex flex-col group hover:bg-white/5 transition-all pl-6 sm:pl-10">
-              <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left group-hover:text-white/60 transition-colors truncate">
+              <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left">
                 Total Score
               </p>
               <div className="flex items-end justify-start gap-1.5">
@@ -184,7 +218,7 @@ export default function Round1Page() {
             <div className="w-px bg-white/10 my-4 sm:my-6" />
 
             <div className="flex-1 min-w-0 py-4 sm:py-6 flex flex-col group hover:bg-white/5 transition-all pl-6 sm:pl-10">
-              <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left group-hover:text-white/60 transition-colors truncate">
+              <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left">
                 Solved
               </p>
               <div className="flex items-end justify-start gap-1.5">
@@ -198,7 +232,7 @@ export default function Round1Page() {
             <div className="w-px bg-white/10 my-4 sm:my-6" />
 
             <div className="flex-1 min-w-0 py-4 sm:py-6 flex flex-col group hover:bg-white/5 transition-all pl-6 sm:pl-10">
-              <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left group-hover:text-white/60 transition-colors truncate">
+              <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left">
                 Bingo Lines
               </p>
               <div className="flex items-end justify-start gap-1.5">
@@ -212,7 +246,7 @@ export default function Round1Page() {
         </section>
 
         {/* Bingo Grid */}
-        <div className="grid grid-cols-3 gap-0 border border-white/10 mb-6 sm:mb-8 shadow-[0_0_60px_rgba(255,255,255,0.03)]">
+        <div className="grid grid-cols-3 gap-0 border border-purple-500/20 mb-6 sm:mb-8 shadow-[0_0_60px_rgba(168,85,247,0.08)]">
           {game?.problems
             .sort((a: IProblem, b: IProblem) => a.gridIndex - b.gridIndex)
             .map((problem: IProblem) => (
@@ -250,8 +284,8 @@ export default function Round1Page() {
             <div className="space-y-4 font-ui">
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/80">System Status</p>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                <div className="flex items-center gap-2 text-purple-300/40 text-[10px] uppercase">
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)] animate-pulse" />
                   Contest Active
                 </div>
                 {lastSyncTime && (
@@ -294,7 +328,7 @@ export default function Round1Page() {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0b0b0b] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+          <div className="bg-[#0b0b0b] border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-[0_20px_60px_rgba(239,68,68,0.2)]">
             <h2 className="text-2xl font-sans font-black tracking-tighter uppercase mb-4 text-white">
               Confirm Sign Out
             </h2>
@@ -318,6 +352,12 @@ export default function Round1Page() {
           </div>
         </div>
       )}
+
+      <CodeforcesDialog
+        isOpen={open}
+        onClose={() => {}}
+        onSubmit={handleCodeforcesSubmit}
+      />
     </div>
   );
 }

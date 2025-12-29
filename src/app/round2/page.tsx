@@ -29,6 +29,8 @@ export default function Round2Page() {
   const [error, setError] = useState('');
   const [teamName, setTeamName] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [isloggedin, setlogin] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -37,6 +39,13 @@ export default function Round2Page() {
       router.push('/round1');
     }
   }, [session, status, router]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      setlogin(true);
+    }
+  }, [status])
+
 
   useEffect(() => {
     const loadRound2Data = async () => {
@@ -119,7 +128,7 @@ export default function Round2Page() {
   return (
     <div className="min-h-screen bg-[#050505] text-[#F2F2F2]">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        
+
         {/* Header Section - Same UI, Different Logic */}
         <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-6 sm:mb-8 border-b border-white/10 pb-4 sm:pb-6">
           <div className="flex flex-col gap-2">
@@ -216,7 +225,7 @@ export default function Round2Page() {
         {/* Sync Area */}
         <div className="flex flex-col items-center gap-8 sm:gap-12">
           <SyncButton onSync={handleSync} lastSyncTime={lastSyncTime} />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 w-full pt-8 sm:pt-12 border-t border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 w-full pt-8 sm:pt-12 border-t border-white/10">
             <div className="space-y-4">
               <p className="font-ui text-[10px] uppercase tracking-[0.3em] font-bold text-white/80">Scoring Rules</p>
               <p className="text-white/40 text-[10px] sm:text-xs leading-relaxed font-ui uppercase">
@@ -278,10 +287,10 @@ export default function Round2Page() {
         </div>
       </footer>
 
-      {/* Logout Confirmation Modal - Purple Theme */}
+      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0b0b0b] border border-purple-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-[0_20px_60px_rgba(168,85,247,0.2)]">
+          <div className="bg-[#0b0b0b] border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-[0_20px_60px_rgba(239,68,68,0.2)]">
             <h2 className="text-2xl font-sans font-black tracking-tighter uppercase mb-4 text-white">
               Confirm Sign Out
             </h2>
@@ -297,7 +306,7 @@ export default function Round2Page() {
               </button>
               <button
                 onClick={handleConfirmLogout}
-                className="flex-1 px-6 py-3 border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
+                className="flex-1 px-6 py-3 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
               >
                 Sign Out
               </button>

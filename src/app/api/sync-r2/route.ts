@@ -103,7 +103,9 @@ export async function POST(request: NextRequest) {
     );
 
     let lastSubmissionTime: Date | null = null;
-    if (scoreResult.solvedIndices.length > 0) {
+    const scoreChanged = scoreResult.currentScore !== teamScore.currentScore;
+
+    if (scoreChanged && scoreResult.solvedIndices.length > 0) {
       const solvedProblems = teamQuestions.filter((p: any) =>
         scoreResult.solvedIndices.includes(p.gridIndex)
       );
@@ -121,6 +123,8 @@ export async function POST(request: NextRequest) {
         const latestTimestamp = Math.max(...relevantSubmissions.map((s: any) => s.creationTimeSeconds));
         lastSubmissionTime = new Date(latestTimestamp * 1000);
       }
+    } else if (!scoreChanged) {
+      lastSubmissionTime = teamScore.lastSubmissionTime || null;
     }
 
     await TeamScoreR2.findOneAndUpdate(

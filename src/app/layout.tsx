@@ -3,7 +3,7 @@ import { Inter, Cormorant_Garamond, Space_Mono } from "next/font/google";
 import { Geist, Geist_Mono } from "next/font/google"; 
 import "./globals.css";
 import Providers from "./providers";
-import { Navbar } from "@/components/navbar";
+
 import CustomCursor from "@/components/CustomCursor";
 
 
@@ -57,7 +57,7 @@ export default function RootLayout({
       >
         <Providers>
           <CustomCursor />
-          <Navbar />
+          
           {children}
         </Providers>
       </body>

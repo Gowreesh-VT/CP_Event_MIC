@@ -11,9 +11,7 @@ export async function GET() {
     try {
         await connectDB();
 
-        const teamScores = await TeamScore.find({})
-            .sort({ currentScore: -1, lastSubmissionTime: 1 })
-            .lean();
+        const teamScores = await TeamScore.find({}).lean();
 
         const teams = await Team.find({}).lean();
         const teamMap = new Map(teams.map(t => [t._id.toString(), t]));
@@ -27,12 +25,20 @@ export async function GET() {
                     rank: 0,
                     teamName: team.teamName,
                     score: score.currentScore,
-                    solvedCount: score.solvedIndices.length,
-                    bingoCount: score.bingoLines.length,
                     lastSubmissionTime: score.lastSubmissionTime,
                 };
             })
             .filter((entry): entry is LeaderboardEntry => entry !== null);
+
+        leaderboard.sort((a, b) => {
+            if (b.score !== a.score) {
+                return b.score - a.score;
+            }
+
+            const timeA = a.lastSubmissionTime ? new Date(a.lastSubmissionTime).getTime() : Infinity;
+            const timeB = b.lastSubmissionTime ? new Date(b.lastSubmissionTime).getTime() : Infinity;
+            return timeA - timeB;
+        });
 
         let currentRank = 1;
         for (let i = 0; i < leaderboard.length; i++) {

@@ -13,7 +13,7 @@ export default function LeaderboardPage() {
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
     const [mounted, setMounted] = useState(false);
 
-    const userTeamName = session?.user?.name || '';
+    const userTeamName = session?.user?.teamName || '';
 
     const fetchLeaderboard = async () => {
         try {
@@ -67,9 +67,9 @@ export default function LeaderboardPage() {
                         <h1 className="text-5xl sm:text-6xl lg:text-8xl font-sans font-black tracking-tighter uppercase mb-4 chrome-text">
                             Rankings
                         </h1>
-                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 font-ui text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-white/40 uppercase">
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 font-ui text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-purple-300/40 uppercase">
                             <span className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 bg-green-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                                <span className="w-1.5 h-1.5 bg-purple-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
                                 LIVE_TELEMETRY
                             </span>
                             {mounted && lastUpdate && (
@@ -88,7 +88,7 @@ export default function LeaderboardPage() {
                         </div>
                         <button 
                             onClick={() => window.location.href = '/round1'}
-                            className="px-3 sm:px-4 py-2 border border-white/10 bg-white/5 hover:bg-white/10 text-white font-ui text-[9px] sm:text-[10px] uppercase tracking-widest transition-all rounded-lg"
+                            className="px-3 sm:px-4 py-2 border border-border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-ui text-[9px] sm:text-[10px] uppercase tracking-widest transition-all rounded-lg"
                         >
                             ← Back to Round 1
                         </button>
@@ -101,7 +101,7 @@ export default function LeaderboardPage() {
                     </div>
                 )}
 
-                <div className="border border-white/10 bg-[#0b0b0b] shadow-[0_0_50px_rgba(255,255,255,0.02)] rounded-2xl overflow-hidden">
+                <div className="border border-purple-500/20 bg-[#0b0b0b] shadow-[0_0_50px_rgba(168,85,247,0.08)] rounded-2xl overflow-hidden">
                     {leaderboard.length === 0 ? (
                         <div className="text-center py-16 sm:py-20 font-ui">
                             <p className="text-xs uppercase tracking-[0.3em] text-white/20">NO_RANKING_DATA_AVAILABLE</p>
@@ -117,12 +117,12 @@ export default function LeaderboardPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="font-ui text-xs sm:text-sm">
-                                    {leaderboard.map((entry) => {
+                                    {leaderboard.map((entry, index) => {
                                         const isOwnTeam = userTeamName && entry.teamName === userTeamName;
                                         
                                         return (
                                             <tr
-                                                key={entry.rank}
+                                                key={`${entry.teamName}-${index}`}
                                                 className={`border-b border-white/5 transition-all duration-300 ${
                                                     isOwnTeam 
                                                         ? 'bg-white text-black' 
@@ -144,7 +144,7 @@ export default function LeaderboardPage() {
                                                             {entry.teamName}
                                                         </span>
                                                         {isOwnTeam && (
-                                                            <span className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-1">YOU</span>
+                                                            <span className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-1">YOUR TEAM</span>
                                                         )}
                                                     </div>
                                                 </td>
