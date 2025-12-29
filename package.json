@@ -8,14 +8,19 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
-    "seed-r2": "tsx scripts/seed-r2.ts",
-    "setup": "tsx scripts/setupDatabase.ts"
+    "setup": "tsx scripts/setupDatabase.ts",
+    "setup-r2-test": "tsx scripts/setup-round2-test-db.ts",
+    "seed-round2": "tsx scripts/seed-round2-questions.ts",
+    "initialize-tournament": "tsx scripts/initialize-tournament.ts",
+    "start-round": "tsx scripts/start-round.ts",
+    "advance-round": "tsx scripts/advance-round.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "axios": "^1.13.2",
+    "bottleneck": "^2.19.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
