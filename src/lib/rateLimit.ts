@@ -1,4 +1,4 @@
-import RateLimit from "@/models/RateLimit.model";
+import RateLimit from "@/models/MongoDB-RateLimit";
 
 // ===========================================
 // RATE LIMITING UTILITY (MongoDB + TTL)

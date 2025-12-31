@@ -42,3 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentation and local scripts (local only)
+SCRIPTS.md
+TOURNAMENT_FLOW.md
+advance-round.ts
+initialize-tournament.ts
+start-round.ts
+view-bracket.ts
+view-top-teams.ts
