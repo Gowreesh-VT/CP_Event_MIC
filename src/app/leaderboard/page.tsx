@@ -112,6 +112,14 @@ if (status === "unauthenticated") {
                         <div className="font-ui text-[9px] sm:text-[10px] text-white/30 uppercase tracking-[0.2em] border border-white/10 px-3 sm:px-4 py-2 rounded-lg">
                             AUTO_REFRESH: {(LEADERBOARD_REFRESH_MS / 1000)}s
                         </div>
+                        {session?.user?.hasRound2Access && (
+                            <button 
+                                onClick={() => window.location.href = '/round2'}
+                                className="px-3 sm:px-4 py-2 border border-green-500/30 bg-green-500/10 hover:bg-green-500/20 text-green-300 font-ui text-[9px] sm:text-[10px] uppercase tracking-widest transition-all rounded-lg"
+                            >
+                                🏆 Round 2
+                            </button>
+                        )}
                         <button 
                             onClick={() => window.location.href = '/round1'}
                             className="px-3 sm:px-4 py-2 border border-border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-ui text-[9px] sm:text-[10px] uppercase tracking-widest transition-all rounded-lg"
