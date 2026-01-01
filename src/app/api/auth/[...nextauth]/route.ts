@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
         token.teamName = team.teamName;
         token.setCodeforcesHandle = team.codeforcesHandle == null;
         token.hasRound2Access = team.hasRound2Access || false;
+        token.codeforcesHandle=team.codeforcesHandle||"";
       }
 
       return token;
@@ -73,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         session.user.teamId = token.teamId as string;
         session.user.teamName = token.teamName as string;
         session.user.hasRound2Access = token.hasRound2Access as boolean;
+        session.user.codeforcesHandle=token.codeforcesHandle as string;
       }
 
       return session;
