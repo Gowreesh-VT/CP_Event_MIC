@@ -10,6 +10,7 @@ declare module "next-auth" {
       teamId: string;
       teamName: string;
       hasRound2Access: boolean;
+      codeforcesHandle:string|null;
     };
   }
 }
@@ -20,6 +21,7 @@ declare module "next-auth/jwt" {
     teamId: string;
     teamName: string;
     hasRound2Access: boolean;
+    codeforcesHandle:string;
   }
 }
 
