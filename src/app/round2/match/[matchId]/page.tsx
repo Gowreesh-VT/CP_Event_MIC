@@ -44,10 +44,10 @@ export default function Round2MatchPage() {
   const { data: session } = useSession();
   const [data, setData] = useState<MatchResponse | null>(null);
   const [mySide, setMySide] = useState<'A' | 'B'>('A');
+  const [timeRemaining, setTimeRemaining] = useState<number>(2700);
   const [loading, setLoading] = useState(true);
 
-  // ⚠️ Replace later with session-derived teamId
-  const teamId: string = session?.user.codeforcesHandle || "";
+  const teamId: string = session?.user?.teamId || "";
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -70,15 +70,29 @@ export default function Round2MatchPage() {
 
     setData(json);
 
-    // Side detection (backend already filters questions)
-    if (json.match.sideA.questions.length > 0) {
-      setMySide('A');
-    } else {
-      setMySide('B');
+    if (json.match.timeRemaining !== undefined) {
+      setTimeRemaining(json.match.timeRemaining);
     }
 
+    if (teamId) {
+      const isInSideA = json.match.sideA.teams.some((t: any) => t.id === teamId);
+      const isInSideB = json.match.sideB.teams.some((t: any) => t.id === teamId);
+      
+      if (isInSideA) {
+        setMySide('A');
+      } else if (isInSideB) {
+        setMySide('B');
+      } else {
+        const userHandle = session?.user?.codeforcesHandle;
+        if (userHandle && json.match.sideB.handles.includes(userHandle)) {
+          setMySide('B');
+        } else {
+          setMySide('A');
+        }
+      }
+    }
     setLoading(false);
-  }, [matchId, router]);
+  }, [matchId, router, teamId, session?.user?.codeforcesHandle]);
 
   // /* ---------- MATCH POLLING ---------- */
   useEffect(() => {
@@ -87,33 +101,67 @@ export default function Round2MatchPage() {
     return () => clearInterval(poll);
   }, [fetchMatch]);
 
+  /* ---------- COUNTDOWN TIMER ---------- */
+  useEffect(() => {
+    if (!data || data.match.status !== 'active') return;
+    
+    const countdown = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown);
+
+          fetch('/api/Round-2/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matchId, teamId: teamId || undefined }),
+          }).then(() => fetchMatch());
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdown);
+  }, [data?.match?.status, matchId, teamId, fetchMatch]);
+
   /* ---------- AUTO SYNC  ---------- */
   useEffect(() => {
-    if (!data) return;
-    if (data.match.status !== 'active') return;
+    if (!data) {
+      console.log('[Sync] No data yet, skipping sync');
+      return;
+    }
+    if (data.match.status !== 'active') {
+      console.log('[Sync] Match not active, status:', data.match.status);
+      return;
+    }
 
     const sync = async () => {
+      console.log('[Sync] Syncing submissions from Codeforces...');
       try {
-        await fetch('/api/Round-2/sync', {
+        const res = await fetch('/api/Round-2/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             matchId,
-            ...(teamId ? { teamId } : {}),
+            teamId: teamId || undefined,
           }),
         });
+        const result = await res.json();
+        console.log('[Sync] Result:', result);
+        
+        if (result.success) {
+          fetchMatch();
+        }
       } catch (err) {
-        console.error('Sync failed', err);
+        console.error('[Sync] Failed:', err);
       }
     };
 
-    // Immediate sync on load
     sync();
 
-    // Poll every 30s while active
     const interval = setInterval(sync, 30000);
     return () => clearInterval(interval);
-  }, [data, matchId, teamId]);
+  }, [data?.match?.status, matchId, teamId, fetchMatch]);
 
   if (loading || !data) {
     return (
@@ -127,23 +175,36 @@ export default function Round2MatchPage() {
   const opp = mySide === 'A' ? data.match.sideB : data.match.sideA;
   const BASE_SCORE = 50;
   const MAX_SCORE = 75;
+  const WIN_RANGE = MAX_SCORE - BASE_SCORE;
 
-  // Clamp scores
-  const clampedMy = Math.min(my.score, MAX_SCORE);
-  const clampedOpp = Math.min(opp.score, MAX_SCORE);
 
-  // Calculate percentage position (0% to 100%)
-  let pullPercentage = 50; // Start at center
+  let pullPercentage = 50;
 
-  if (clampedMy >= MAX_SCORE) {
-    pullPercentage = 0; // Move to left edge (your side wins)
-  } else if (clampedOpp >= MAX_SCORE) {
-    pullPercentage = 100; // Move to right edge (opponent wins)
+  const myProgress = Math.max(0, my.score - BASE_SCORE);
+  const oppProgress = Math.max(0, opp.score - BASE_SCORE);
+
+  if (my.score >= MAX_SCORE && opp.score < MAX_SCORE) {
+    pullPercentage = 0;
+  } else if (opp.score >= MAX_SCORE && my.score < MAX_SCORE) {
+    pullPercentage = 100;
+  } else if (my.score >= MAX_SCORE && opp.score >= MAX_SCORE) {
+
+    pullPercentage = my.score > opp.score ? 0 : (opp.score > my.score ? 100 : 50);
   } else {
-    const diff = clampedMy - clampedOpp;
-    const MAX_DIFF = MAX_SCORE - BASE_SCORE; // 25
-    const normalized = diff / MAX_DIFF;
-    pullPercentage = 50 - (normalized * 50); // Scale from 0% to 100% (inverted)
+
+    const totalProgress = myProgress + oppProgress;
+    
+    if (totalProgress > 0) {
+      pullPercentage = (oppProgress / totalProgress) * 100;
+    } else if (my.score < BASE_SCORE || opp.score < BASE_SCORE) {
+
+      const diff = my.score - opp.score;
+      pullPercentage = 50 - (diff / WIN_RANGE) * 50;
+      pullPercentage = Math.max(0, Math.min(100, pullPercentage));
+    } else {
+
+      pullPercentage = 50;
+    }
   }
 
 
@@ -169,12 +230,27 @@ export default function Round2MatchPage() {
           </div>
           <div className="flex flex-col items-start lg:items-end gap-4">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => window.location.href = '/leaderboard'}
-                className="px-4 py-2 border border-white/10 bg-white/5 hover:bg-white/10 text-white font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
-              >
-                Leaderboard
-              </button>
+              {/* Timer Display */}
+              <div className={`px-5 py-2 rounded-lg border ${
+                timeRemaining <= 300 
+                  ? 'border-red-500/50 bg-red-500/10' 
+                  : timeRemaining <= 600 
+                    ? 'border-yellow-500/50 bg-yellow-500/10' 
+                    : 'border-white/20 bg-white/5'
+              }`}>
+                <div className="flex flex-col items-center">
+                  <p className="text-[10px] uppercase tracking-widest text-white/40 mb-0.5">Time Remaining</p>
+                  <p className={`text-3xl font-mono font-bold ${
+                    timeRemaining <= 300 
+                      ? 'text-red-400' 
+                      : timeRemaining <= 600 
+                        ? 'text-yellow-400' 
+                        : 'text-white'
+                  }`}>
+                    {Math.floor(timeRemaining / 60).toString().padStart(2, '0')}:{(timeRemaining % 60).toString().padStart(2, '0')}
+                  </p>
+                </div>
+              </div>
 
               <button
                 onClick={handleLogoutClick}
@@ -194,10 +270,10 @@ export default function Round2MatchPage() {
           </div>
 
           <div className="flex justify-between text-4xl font-black">
-            <span className={clampedMy >= MAX_SCORE ? "text-green-400" : ""}>
+            <span className={my.score >= MAX_SCORE ? "text-green-400" : ""}>
               {my.score}
             </span>
-            <span className={clampedOpp >= MAX_SCORE ? "text-purple-400/80" : ""}>
+            <span className={opp.score >= MAX_SCORE ? "text-purple-400/80" : ""}>
               {opp.score}
             </span>
           </div>
@@ -217,14 +293,14 @@ export default function Round2MatchPage() {
               }}
               transition={{
                 type: 'spring',
-                stiffness: clampedMy >= MAX_SCORE || clampedOpp >= MAX_SCORE ? 80 : 140,
-                damping: clampedMy >= MAX_SCORE || clampedOpp >= MAX_SCORE ? 12 : 18
+                stiffness: my.score >= MAX_SCORE || opp.score >= MAX_SCORE ? 80 : 140,
+                damping: my.score >= MAX_SCORE || opp.score >= MAX_SCORE ? 12 : 18
               }}
               className={`absolute top-0 -translate-x-1/2
      w-36 h-full bg-white
      shadow-[0_0_30px_rgba(255,255,255,0.8)]
      ring-1 ring-white/40 z-10
-     ${(clampedMy >= MAX_SCORE || clampedOpp >= MAX_SCORE) ? 'text-purple-300/80 shadow-[0_0_40px_rgba(34,197,94,0.9)]' : ''}`}
+     ${(my.score >= MAX_SCORE || opp.score >= MAX_SCORE) ? 'text-purple-300/80 shadow-[0_0_40px_rgba(34,197,94,0.9)]' : ''}`}
             />
 
             <div className="absolute left-2 top-0 h-full w-[2px] bg-white/40" />

@@ -31,9 +31,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
 !.env.example
-.env.local
 
 
 # vercel
@@ -51,3 +49,4 @@ initialize-tournament.ts
 start-round.ts
 view-bracket.ts
 view-top-teams.ts
+config.bat

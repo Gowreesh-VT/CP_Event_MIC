@@ -58,8 +58,8 @@ const Round2RoundSchema = new Schema<IRound2Round>(
 Round2RoundSchema.index({ roundNumber: 1 }, { unique: true });
 Round2RoundSchema.index({ status: 1 });
 
-export const Round2Round: Model<IRound2Round> =
-  mongoose.models.Round2Round ||
-  mongoose.model<IRound2Round>('Round2Round', Round2RoundSchema);
+const Round2Stage: Model<IRound2Round> =
+  mongoose.models.Round2Stage ||
+  mongoose.model<IRound2Round>('Round2Stage', Round2RoundSchema, 'round2stages');
 
-export default Round2Round;
+export default Round2Stage;
