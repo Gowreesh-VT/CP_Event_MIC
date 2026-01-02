@@ -85,7 +85,6 @@ const MatchSubmissionSchema = new Schema<IMatchSubmission>(
 );
 
 
-MatchSubmissionSchema.index({ submissionId: 1 }, { unique: true });
 MatchSubmissionSchema.index({ matchId: 1, processed: 1 });
 MatchSubmissionSchema.index({ matchId: 1, side: 1 });
 MatchSubmissionSchema.index({ teamId: 1, timestamp: -1 });

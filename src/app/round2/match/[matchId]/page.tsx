@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
+import { secureFetch } from '@/lib/csrf';
 
 
 
@@ -113,7 +114,7 @@ export default function Round2MatchPage() {
           fetch('/api/Round-2/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matchId, teamId: teamId || undefined }),
+            body: JSON.stringify({ matchId }),
           }).then(() => fetchMatch());
           return 0;
         }
@@ -127,32 +128,28 @@ export default function Round2MatchPage() {
   /* ---------- AUTO SYNC  ---------- */
   useEffect(() => {
     if (!data) {
-      console.log('[Sync] No data yet, skipping sync');
       return;
     }
     if (data.match.status !== 'active') {
-      console.log('[Sync] Match not active, status:', data.match.status);
       return;
     }
 
     const sync = async () => {
-      console.log('[Sync] Syncing submissions from Codeforces...');
       try {
-        const res = await fetch('/api/Round-2/sync', {
+        const res = await secureFetch('/api/Round-2/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             matchId,
-            teamId: teamId || undefined,
           }),
         });
         const result = await res.json();
-        console.log('[Sync] Result:', result);
         
         if (result.success) {
           fetchMatch();
         }
       } catch (err) {
+        // Only log errors, not success data
         console.error('[Sync] Failed:', err);
       }
     };

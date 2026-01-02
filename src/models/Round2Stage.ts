@@ -55,7 +55,6 @@ const Round2RoundSchema = new Schema<IRound2Round>(
   }
 );
 
-Round2RoundSchema.index({ roundNumber: 1 }, { unique: true });
 Round2RoundSchema.index({ status: 1 });
 
 const Round2Stage: Model<IRound2Round> =

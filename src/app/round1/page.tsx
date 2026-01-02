@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
 import CodeforcesDialog from '@/components/CodeforcesHandle';
+import { secureFetch } from '@/lib/csrf';
 
 
 interface GameData {
@@ -20,8 +22,18 @@ interface Progress {
   bingoLines: number[][];
 }
 
+interface Round1Status {
+  isActive: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  duration: number;
+  timeRemaining: number;
+  hasEnded: boolean;
+}
+
 export default function Round1Page() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [game, setGame] = useState<GameData | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +41,11 @@ export default function Round1Page() {
   const [error, setError] = useState('');
   const [teamName, setTeamName] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
   const hasRound2Access = session?.user?.hasRound2Access || false;
   const [open, setOpen] = useState(false);
+  const [round1Status, setRound1Status] = useState<Round1Status | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
   useEffect(() => {
     if (
@@ -41,11 +56,41 @@ export default function Round1Page() {
     }
   }, [status, session]);
 
+  useEffect(() => {
+    const fetchRound1Status = async () => {
+      try {
+        const res = await fetch('/api/round1/status');
+        const data = await res.json();
+        if (data.success) {
+          setRound1Status(data.session);
+          setTimeRemaining(data.session.timeRemaining);
+        }
+      } catch (err) {
+        console.error('Failed to fetch Round 1 status:', err);
+      }
+    };
+
+    fetchRound1Status();
+    
+    const interval = setInterval(fetchRound1Status, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!round1Status?.isActive || timeRemaining <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => Math.max(0, prev - 1000));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [round1Status?.isActive, timeRemaining]);
+
   const handleCodeforcesSubmit = async (handle: string) => {
-    const res = await fetch("/api/team/update", {
+    const res = await secureFetch("/api/team/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: session?.user?.email, codeforcesHandle: handle }),
+      body: JSON.stringify({ codeforcesHandle: handle }),
     });
 
     if (!res.ok) {
@@ -81,7 +126,7 @@ export default function Round1Page() {
 
   const handleSync = useCallback(async (): Promise<void> => {
     try {
-      const res = await fetch('/api/sync-score', { method: 'POST' });
+      const res = await secureFetch('/api/sync-score', { method: 'POST' });
       const data = await res.json();
 
       if (data.success) {
@@ -97,9 +142,10 @@ export default function Round1Page() {
 
   const handleRound2Click = () => {
     if (hasRound2Access) {
-      window.location.href = '/round2';
+      router.push('/round2');
     } else {
-      alert('You are not granted access to this round');
+      setShowAccessDenied(true);
+      setTimeout(() => setShowAccessDenied(false), 3000); 
     }
   };
 
@@ -122,6 +168,19 @@ export default function Round1Page() {
     return indices;
   }, [progress?.bingoLines]);
 
+  // Format time remaining
+  const formatTimeRemaining = (ms: number): string => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    if (hours > 0) {
+      return `${hours} : ${minutes} : ${seconds}`;
+    }
+    return `${minutes} : ${seconds}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050505]">
@@ -135,6 +194,94 @@ export default function Round1Page() {
             Initializing Grid...
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Show waiting screen if Round 1 is not active (not started or ended)
+  if (!round1Status?.isActive) {
+    const hasEnded = round1Status?.endTime && new Date() > new Date(round1Status.endTime);
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <div className="text-center max-w-xl px-4">
+          {/* Team Name Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/30 bg-purple-500/10 rounded-lg mb-8">
+            <span className="w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+            <p className="font-ui text-sm uppercase tracking-[0.3em] text-purple-300">
+              {teamName || 'Team'}
+            </p>
+          </div>
+
+          <h2 className="text-4xl sm:text-5xl font-sans font-black tracking-tighter uppercase mb-6 chrome-text">
+            {hasEnded ? 'Round 1 Has Ended' : 'Round 1 Not Started'}
+          </h2>
+          
+          <p className="font-ui text-sm sm:text-base text-white/60 mb-10 uppercase tracking-wider leading-relaxed">
+            {hasEnded 
+              ? 'The contest has ended. Thank you for participating! Check the leaderboard for final results.'
+              : 'The contest has not begun yet. Please wait for the organizers to start Round 1.'
+            }
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button 
+              onClick={() => window.location.href = '/leaderboard'}
+              className="w-full sm:w-auto px-8 py-3 border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
+            >
+              View Leaderboard
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full sm:w-auto px-8 py-3 border border-white/10 bg-white/5 hover:bg-white/10 text-white/60 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
+            >
+              Refresh Status
+            </button>
+            <button 
+              onClick={handleLogoutClick}
+              className="w-full sm:w-auto px-8 py-3 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
+            >
+              Logout
+            </button>
+          </div>
+
+          {/* Optional: Show time info if ended */}
+          {hasEnded && round1Status?.endTime && (
+            <div className="mt-10 pt-8 border-t border-white/5">
+              <p className="font-ui text-xs text-white/30 uppercase tracking-wider">
+                Contest ended at {new Date(round1Status.endTime).toLocaleTimeString()}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Logout Modal */}
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-[#0b0b0b] border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-[0_20px_60px_rgba(239,68,68,0.2)]">
+              <h2 className="text-2xl font-sans font-black tracking-tighter uppercase mb-4 text-white">
+                Confirm Sign Out
+              </h2>
+              <p className="font-ui text-sm text-white/60 mb-8 uppercase tracking-wider">
+                Are you sure you want to sign out? You will be redirected to the home page.
+              </p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 px-6 py-3 border border-white/10 bg-white/5 hover:bg-white/10 text-white font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmLogout}
+                  className="flex-1 px-6 py-3 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-ui text-[10px] uppercase tracking-widest transition-all rounded-lg"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -202,7 +349,26 @@ export default function Round1Page() {
 
         {/* Stats Dashboard */}
         <section className="flex justify-center mb-12 sm:mb-16">
-          <div className="flex w-full max-w-md sm:max-w-3xl bg-[#0b0b0b] rounded-3xl border border-purple-500/20 overflow-hidden shadow-[0_10px_40px_rgba(168,85,247,0.1)]">
+          <div className="flex w-full max-w-md sm:max-w-4xl bg-[#0b0b0b] rounded-3xl border border-purple-500/20 overflow-hidden shadow-[0_10px_40px_rgba(168,85,247,0.1)]">
+            {/* Timer Display */}
+            {round1Status?.isActive && (
+              <>
+                <div className="flex-1 min-w-0 py-4 sm:py-6 flex flex-col group hover:bg-white/5 transition-all pl-6 sm:pl-10">
+                  <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left">
+                    Time Left
+                  </p>
+                  <div className="flex items-end justify-start gap-1.5">
+                    <span className={`text-2xl sm:text-4xl font-sans font-black tracking-tighter tabular-nums ${
+                      timeRemaining < 300000 ? 'text-red-400 animate-pulse' : 'text-white'
+                    }`}>
+                      {formatTimeRemaining(timeRemaining)}
+                    </span>
+                  </div>
+                </div>
+                <div className="w-px bg-white/10 my-4 sm:my-6" />
+              </>
+            )}
+
             <div className="flex-1 min-w-0 py-4 sm:py-6 flex flex-col group hover:bg-white/5 transition-all pl-6 sm:pl-10">
               <p className="font-ui text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1 text-left">
                 Total Score
@@ -262,7 +428,7 @@ export default function Round1Page() {
 
         {/* Sync Button and Info */}
         <div className="flex flex-col items-center gap-8 sm:gap-12">
-          <SyncButton onSync={handleSync} lastSyncTime={lastSyncTime} />
+          <SyncButton onSync={handleSync} lastSyncTime={lastSyncTime} isRoundActive={round1Status?.isActive || false} />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 w-full pt-8 sm:pt-12 border-t border-white/10">
             <div className="space-y-4">
@@ -284,10 +450,17 @@ export default function Round1Page() {
             <div className="space-y-4 font-ui">
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/80">System Status</p>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-purple-300/40 text-[10px] uppercase">
-                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)] animate-pulse" />
-                  Contest Active
-                </div>
+                {round1Status?.isActive ? (
+                  <div className="flex items-center gap-2 text-purple-300/40 text-[10px] uppercase">
+                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)] animate-pulse" />
+                    Contest Active
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-red-300/40 text-[10px] uppercase">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                    Contest Ended
+                  </div>
+                )}
                 {lastSyncTime && (
                   <p className="text-white/20 text-[10px] uppercase">
                     Last sync: {lastSyncTime.toLocaleTimeString()}
@@ -321,7 +494,9 @@ export default function Round1Page() {
       <footer className="border-t border-white/5 mt-8 sm:mt-6 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
           <p className="font-ui text-[10px] uppercase tracking-[0.2em] text-white/20">Codeforces Bingo Contest</p>
-          <p className="font-ui text-[10px] uppercase tracking-[0.2em] text-white/20">Round 1 — Active</p>
+          <p className="font-ui text-[10px] uppercase tracking-[0.2em] text-white/20">
+            Round 1 — {round1Status?.isActive ? 'Active' : 'Ended'}
+          </p>
         </div>
       </footer>
 
@@ -349,6 +524,18 @@ export default function Round1Page() {
                 Sign Out
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Access Denied Toast */}
+      {showAccessDenied && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="bg-[#0b0b0b] border border-yellow-500/30 rounded-xl px-6 py-4 shadow-[0_10px_40px_rgba(234,179,8,0.2)] flex items-center gap-3">
+            <span className="text-yellow-400 text-lg">⚠️</span>
+            <p className="font-ui text-sm text-yellow-300 uppercase tracking-wider">
+              You are not qualified for Round 2
+            </p>
           </div>
         </div>
       )}

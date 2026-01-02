@@ -6,10 +6,11 @@ import { SYNC_COOLDOWN_MS } from '@/lib/constants';
 interface SyncButtonProps {
     onSync: () => Promise<void>;
     lastSyncTime?: Date | null;
+    isRoundActive?: boolean;
 }
 
 // refresh button with a cooldown timer
-export function SyncButton({ onSync, lastSyncTime }: SyncButtonProps) {
+export function SyncButton({ onSync, lastSyncTime, isRoundActive = true }: SyncButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [error, setError] = useState('');
@@ -45,7 +46,7 @@ export function SyncButton({ onSync, lastSyncTime }: SyncButtonProps) {
         }
     }, [onSync, isLoading, cooldown]);
 
-    const isDisabled = isLoading || cooldown > 0;
+    const isDisabled = isLoading || cooldown > 0 || !isRoundActive;
 
     return (
         <div className="flex flex-col items-center gap-3">
@@ -64,6 +65,10 @@ export function SyncButton({ onSync, lastSyncTime }: SyncButtonProps) {
                     <span className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-current animate-ping" />
                         SYNCING
+                    </span>
+                ) : !isRoundActive ? (
+                    <span className="flex items-center gap-3 italic">
+                        ROUND ENDED
                     </span>
                 ) : cooldown > 0 ? (
                     <span className="flex items-center gap-3 italic">

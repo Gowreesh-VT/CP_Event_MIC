@@ -3,12 +3,23 @@
 // ===========================================
 
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { connectDB } from '@/lib/db';
 import { TeamScore, Team } from '@/models';
+import { authOptions } from '../auth/[...nextauth]/route';
 import type { LeaderboardResponse, LeaderboardEntry } from '@/types';
 
 export async function GET() {
     try {
+        // Authentication check
+        const session = await getServerSession(authOptions);
+        if (!session?.user) {
+            return NextResponse.json<LeaderboardResponse>(
+                { success: false, error: 'Unauthorized - Please login to view leaderboard' },
+                { status: 401 }
+            );
+        }
+
         await connectDB();
 
         const teamScores = await TeamScore.find({}).lean();

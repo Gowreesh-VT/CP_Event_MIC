@@ -84,15 +84,15 @@ export function checkWinCondition(match: IMatch): WinConditionResult {
   if (match.scoreA >= TOW_WIN_THRESHOLD) {
     return { hasWinner: true, winningSide: 'A', isTimeout: false };
   }
-  
+
   if (match.scoreB >= TOW_WIN_THRESHOLD) {
     return { hasWinner: true, winningSide: 'B', isTimeout: false };
   }
-  
+
   if (match.startTime) {
     const timeElapsed = Date.now() - match.startTime.getTime();
     const timeExpired = timeElapsed >= match.duration * 1000;
-    
+
     if (timeExpired) {
 
       if (match.scoreA > match.scoreB) {
@@ -116,10 +116,10 @@ export function getTimeRemaining(match: IMatch): number {
   if (!match.startTime) {
     return match.duration;
   }
-  
+
   const elapsed = Math.floor((Date.now() - match.startTime.getTime()) / 1000);
   const remaining = match.duration - elapsed;
-  
+
   return Math.max(0, remaining);
 }
 
@@ -145,16 +145,23 @@ export function getSideForHandle(
   sideB_handles: string[]
 ): 'A' | 'B' | null {
   const normalizedHandle = handle.toLowerCase();
-  
+
   if (sideA_handles.some(h => h.toLowerCase() === normalizedHandle)) {
     return 'A';
   }
-  
+
   if (sideB_handles.some(h => h.toLowerCase() === normalizedHandle)) {
     return 'B';
   }
-  
+
   return null;
+}
+
+/**
+ * Escape special regex characters to prevent ReDoS attacks
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
@@ -165,11 +172,13 @@ export async function getTeamIdForHandle(
   handle: string,
   teamIds: Types.ObjectId[]
 ): Promise<Types.ObjectId | null> {
+  // Escape special regex characters to prevent ReDoS attacks
+  const escapedHandle = escapeRegex(handle);
   const team = await Team.findOne({
     _id: { $in: teamIds },
-    codeforcesHandle: { $regex: new RegExp(`^${handle}$`, 'i') },
+    codeforcesHandle: { $regex: new RegExp(`^${escapedHandle}$`, 'i') },
   });
-  
+
   return team ? team._id : null;
 }
 
@@ -183,8 +192,8 @@ export function isQuestionInPool(
   questionPool: IRound2Question[]
 ): IRound2Question | null {
   return questionPool.find(
-    q => q.contestId === String(contestId) && 
-         q.problemIndex.toUpperCase() === problemIndex.toUpperCase()
+    q => q.contestId === String(contestId) &&
+      q.problemIndex.toUpperCase() === problemIndex.toUpperCase()
   ) || null;
 }
 
@@ -214,26 +223,26 @@ export async function processMatchSubmissions(
     Round2Question.find({ _id: { $in: match.questionPoolA } }),
     Round2Question.find({ _id: { $in: match.questionPoolB } }),
   ]);
-  
+
   const newSubmissions: ProcessedSubmission[] = [];
   let scoreADelta = 0;
   let scoreBDelta = 0;
-  
+
   const matchStartTime = match.startTime ? match.startTime.getTime() / 1000 : 0;
   const validSubmissions = cfSubmissions.filter(
     sub => sub.creationTimeSeconds >= matchStartTime
   );
-  
+
   for (const sub of validSubmissions) {
 
     const alreadyProcessed = await isSubmissionProcessed(sub.id);
     if (alreadyProcessed) {
       continue;
     }
-    
+
     const handle = sub.author.members[0]?.handle;
     if (!handle) continue;
-    
+
     const side = getSideForHandle(handle, match.sideA_handles, match.sideB_handles);
     if (!side) continue;
 
@@ -243,16 +252,16 @@ export async function processMatchSubmissions(
       sub.problem.index,
       questionPool
     );
-    
+
     if (!question) continue;
 
     const points = calculatePoints(sub.verdict);
 
     const teamIds = side === 'A' ? match.sideA_teamIds : match.sideB_teamIds;
     const teamId = await getTeamIdForHandle(handle, teamIds);
-    
+
     if (!teamId) continue;
-    
+
 
     if (sub.verdict === 'OK') {
       const alreadySolved = await MatchSubmission.findOne({
@@ -261,7 +270,7 @@ export async function processMatchSubmissions(
         questionId: question._id,
         verdict: 'OK',
       });
-      
+
       if (alreadySolved) {
         const submission = new MatchSubmission({
           matchId: match._id,
@@ -277,7 +286,7 @@ export async function processMatchSubmissions(
           timestamp: new Date(sub.creationTimeSeconds * 1000),
           processed: true,
         });
-        
+
         await submission.save();
         continue;
       }
@@ -297,7 +306,7 @@ export async function processMatchSubmissions(
       timestamp: new Date(sub.creationTimeSeconds * 1000),
       processed: true,
     });
-    
+
     await submission.save();
 
     if (side === 'A') {
@@ -305,7 +314,7 @@ export async function processMatchSubmissions(
     } else {
       scoreBDelta += points;
     }
-    
+
     newSubmissions.push({
       submissionId: sub.id,
       side,
@@ -320,20 +329,20 @@ export async function processMatchSubmissions(
 
   const newScoreA = match.scoreA + scoreADelta;
   const newScoreB = match.scoreB + scoreBDelta;
-  
+
   match.scoreA = newScoreA;
   match.scoreB = newScoreB;
 
   const winResult = checkWinCondition(match);
-  
+
   if (winResult.hasWinner && match.status === 'active') {
     match.status = 'completed';
     match.winningSide = winResult.winningSide || undefined;
     match.endTime = new Date();
   }
-  
+
   await match.save();
-  
+
   return {
     scoreA: newScoreA,
     scoreB: newScoreB,
@@ -355,28 +364,28 @@ export async function getMatchState(matchId: Types.ObjectId | string) {
     .populate('sideB_teamIds', 'teamName codeforcesHandle')
     .populate('questionPoolA')
     .populate('questionPoolB');
-  
+
   if (!match) {
     throw new Error('Match not found');
   }
-  
+
   const submissions = await MatchSubmission.find({
     matchId: match._id,
     verdict: 'OK',
   });
-  
+
   const solvedByA = new Set(
     submissions
       .filter(s => s.side === 'A')
       .map(s => s.questionId.toString())
   );
-  
+
   const solvedByB = new Set(
     submissions
       .filter(s => s.side === 'B')
       .map(s => s.questionId.toString())
   );
-  
+
   return {
     match,
     solvedByA,
@@ -393,9 +402,9 @@ export function getWinningTeamIds(match: IMatch): Types.ObjectId[] {
   if (!match.winningSide) {
     return [];
   }
-  
-  return match.winningSide === 'A' 
-    ? match.sideA_teamIds 
+
+  return match.winningSide === 'A'
+    ? match.sideA_teamIds
     : match.sideB_teamIds;
 }
 
@@ -407,9 +416,9 @@ export function getLosingTeamIds(match: IMatch): Types.ObjectId[] {
   if (!match.winningSide) {
     return [];
   }
-  
-  return match.winningSide === 'A' 
-    ? match.sideB_teamIds 
+
+  return match.winningSide === 'A'
+    ? match.sideB_teamIds
     : match.sideA_teamIds;
 }
 
