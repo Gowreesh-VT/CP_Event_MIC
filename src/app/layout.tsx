@@ -45,11 +45,15 @@ export const metadata: Metadata = {
   keywords: ["codeforces", "bingo", "competitive programming", "coding contest"],
 };
 
-export default function RootLayout({
+import { headers } from "next/headers";
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
+  
   return (
     <html lang="en" className="dark">
       <body

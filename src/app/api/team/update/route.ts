@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { connectDB } from "@/lib/db";
 import Team from "@/models/Team";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
     try {
@@ -16,6 +17,16 @@ export async function POST(req: Request) {
         }
 
         await connectDB();
+
+        // Rate limiting: 5 requests per minute per user
+        const rateLimit = await checkRateLimit(`team-update:${session.user.email}`, 5, 60000);
+        if (rateLimit.limited) {
+            const resetIn = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+            return NextResponse.json(
+                { message: `Too many requests. Try again in ${resetIn} seconds.` },
+                { status: 429 }
+            );
+        }
 
         const { codeforcesHandle } = await req.json();
 
@@ -43,7 +54,7 @@ export async function POST(req: Request) {
                 { status: 404 }
             );
         }
-        
+
         if (team.codeforcesHandle) {
             return NextResponse.json(
                 { message: "Codeforces handle already set" },
@@ -58,9 +69,9 @@ export async function POST(req: Request) {
             message: "Codeforces handle updated successfully",
         });
     } catch (error) {
-        console.error(error);
+        console.error('Team update error:', error);
         return NextResponse.json(
-            { message: "Internal server error" },
+            { message: "An error occurred. Please try again." },
             { status: 500 }
         );
     }

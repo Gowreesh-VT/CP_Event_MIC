@@ -62,13 +62,13 @@ export async function GET() {
 
     if (match.status === 'completed') {
       const nextRound = match.roundNumber + 1;
-      
+
 
       const isInSideA = match.sideA_teamIds.some((id: any) => id.toString() === teamId);
       const teamSide = isInSideA ? 'A' : 'B';
-      
+
       if (match.winningSide === teamSide && nextRound <= 3) {
-        
+
         const nextMatch = await Match.findOne({
           roundNumber: nextRound,
           $or: [
@@ -107,7 +107,7 @@ export async function GET() {
   } catch (error: any) {
     console.error('Active match fetch error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch active match' },
+      { success: false, error: 'An error occurred while fetching match. Please try again.' },
       { status: 500 }
     );
   }

@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { GridCell } from '@/components/GridCell';
 import { SyncButton } from '@/components/SyncButton';
 import type { IProblem } from '@/types';
 import CodeforcesDialog from '@/components/CodeforcesHandle';
+import { secureFetch } from '@/lib/csrf';
 
 
 interface GameData {
@@ -22,6 +24,7 @@ interface Progress {
 
 export default function Round1Page() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [game, setGame] = useState<GameData | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,6 +32,7 @@ export default function Round1Page() {
   const [error, setError] = useState('');
   const [teamName, setTeamName] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
   const hasRound2Access = session?.user?.hasRound2Access || false;
   const [open, setOpen] = useState(false);
 
@@ -42,10 +46,10 @@ export default function Round1Page() {
   }, [status, session]);
 
   const handleCodeforcesSubmit = async (handle: string) => {
-    const res = await fetch("/api/team/update", {
+    const res = await secureFetch("/api/team/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: session?.user?.email, codeforcesHandle: handle }),
+      body: JSON.stringify({ codeforcesHandle: handle }),
     });
 
     if (!res.ok) {
@@ -81,7 +85,7 @@ export default function Round1Page() {
 
   const handleSync = useCallback(async (): Promise<void> => {
     try {
-      const res = await fetch('/api/sync-score', { method: 'POST' });
+      const res = await secureFetch('/api/sync-score', { method: 'POST' });
       const data = await res.json();
 
       if (data.success) {
@@ -97,9 +101,10 @@ export default function Round1Page() {
 
   const handleRound2Click = () => {
     if (hasRound2Access) {
-      window.location.href = '/round2';
+      router.push('/round2');
     } else {
-      alert('You are not granted access to this round');
+      setShowAccessDenied(true);
+      setTimeout(() => setShowAccessDenied(false), 3000); 
     }
   };
 
@@ -349,6 +354,18 @@ export default function Round1Page() {
                 Sign Out
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Access Denied Toast */}
+      {showAccessDenied && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="bg-[#0b0b0b] border border-yellow-500/30 rounded-xl px-6 py-4 shadow-[0_10px_40px_rgba(234,179,8,0.2)] flex items-center gap-3">
+            <span className="text-yellow-400 text-lg">⚠️</span>
+            <p className="font-ui text-sm text-yellow-300 uppercase tracking-wider">
+              You are not qualified for Round 2
+            </p>
           </div>
         </div>
       )}
