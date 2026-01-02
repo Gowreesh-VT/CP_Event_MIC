@@ -51,11 +51,10 @@ export async function checkRateLimit(
     {
       $setOnInsert: {
         key: identifier,
-        expiresAt,
       },
       $set: {
         count: 1,
-        expiresAt, // Reset expiry for expired records
+        expiresAt, // Set expiry for both new and expired records
       },
     },
     {
