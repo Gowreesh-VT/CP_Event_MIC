@@ -22,7 +22,7 @@ const RateLimitSchema = new Schema<IRateLimit>(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // 🔥 TTL index
+      index: { expires: 0 },
     },
   },
   { timestamps: true }

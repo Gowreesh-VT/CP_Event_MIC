@@ -3,8 +3,20 @@
 // ===========================================
 
 import axios, { AxiosError } from 'axios';
+import Bottleneck from 'bottleneck';
 import { CF_API_BASE, CF_USER_STATUS_ENDPOINT } from '@/lib/constants';
 import type { CFApiResponse, CFSubmission } from '@/types';
+
+// Rate limiter for Codeforces API
+// Codeforces allows ~2 requests per second
+
+const cfLimiter = new Bottleneck({
+    maxConcurrent: 1,
+    minTime: 500,
+    reservoir: 10,
+    reservoirRefreshAmount: 10,
+    reservoirRefreshInterval: 5000,
+});
 
 interface FetchSubmissionsResult {
     success: boolean;
@@ -13,19 +25,23 @@ interface FetchSubmissionsResult {
 }
 
 /**
- * Fetches all accepted submissions for a Codeforces user
+ * Fetches submissions for a Codeforces user
  * @param handle - Codeforces username
- * @returns Array of accepted submissions
+ * @param includeAll - If true, includes all verdicts (for penalties). If false, only OK submissions
+ * @returns Array of submissions
  */
 export async function fetchUserSubmissions(
-    handle: string
+    handle: string,
+    includeAll: boolean = false
 ): Promise<FetchSubmissionsResult> {
     try {
         const url = `${CF_API_BASE}${CF_USER_STATUS_ENDPOINT}?handle=${encodeURIComponent(handle)}`;
 
-        const response = await axios.get<CFApiResponse>(url, {
-            timeout: 10000, // 10 second timeout
-        });
+        const response = await cfLimiter.schedule(() =>
+            axios.get<CFApiResponse>(url, {
+                timeout: 10000,
+            })
+        );
 
         if (response.data.status !== 'OK') {
             return {
@@ -34,14 +50,22 @@ export async function fetchUserSubmissions(
             };
         }
 
-        // Filter only accepted submissions
-        const acceptedSubmissions = (response.data.result || []).filter(
-            (sub: CFSubmission) => sub.verdict === 'OK'
-        );
+        const allSubmissions = response.data.result || [];
+        
+        const filteredSubmissions = includeAll 
+            ? allSubmissions.filter((sub: CFSubmission) => {
+
+                const finalVerdicts = ['OK', 'WRONG_ANSWER', 'TIME_LIMIT_EXCEEDED', 'RUNTIME_ERROR', 
+                                      'COMPILATION_ERROR', 'MEMORY_LIMIT_EXCEEDED', 'IDLENESS_LIMIT_EXCEEDED',
+                                      'SECURITY_VIOLATED', 'CRASHED', 'INPUT_PREPARATION_CRASHED',
+                                      'CHALLENGED', 'SKIPPED', 'REJECTED'];
+                return finalVerdicts.includes(sub.verdict);
+              })
+            : allSubmissions.filter((sub: CFSubmission) => sub.verdict === 'OK');
 
         return {
             success: true,
-            submissions: acceptedSubmissions,
+            submissions: filteredSubmissions,
         };
     } catch (error) {
         const axiosError = error as AxiosError;

@@ -1,12 +1,11 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { LEADERBOARD_REFRESH_MS } from '@/lib/constants';
 import type { LeaderboardEntry } from '@/types';
 
 export default function LeaderboardPage() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -35,12 +34,39 @@ export default function LeaderboardPage() {
         }
     };
 
-    useEffect(() => {
-        setMounted(true);
-        fetchLeaderboard();
-        const interval = setInterval(fetchLeaderboard, LEADERBOARD_REFRESH_MS);
-        return () => clearInterval(interval);
-    }, []);
+   useEffect(() => {
+  if (!session) return;
+
+  setMounted(true);
+  fetchLeaderboard();
+  const interval = setInterval(fetchLeaderboard, LEADERBOARD_REFRESH_MS);
+
+  return () => clearInterval(interval);
+}, [session]);
+
+if (status === "loading") {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+      <p className="text-white/50 font-ui tracking-widest text-xs">
+        Checking authentication...
+      </p>
+    </div>
+  );
+}
+
+if (status === "unauthenticated") {
+  if (typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+      <p className="text-white/50 font-ui tracking-widest text-xs">
+        Redirecting to login...
+      </p>
+    </div>
+  );
+}
 
     if (isLoading) {
         return (
@@ -86,6 +112,14 @@ export default function LeaderboardPage() {
                         <div className="font-ui text-[9px] sm:text-[10px] text-white/30 uppercase tracking-[0.2em] border border-white/10 px-3 sm:px-4 py-2 rounded-lg">
                             AUTO_REFRESH: {(LEADERBOARD_REFRESH_MS / 1000)}s
                         </div>
+                        {session?.user?.hasRound2Access && (
+                            <button 
+                                onClick={() => window.location.href = '/round2'}
+                                className="px-3 sm:px-4 py-2 border border-green-500/30 bg-green-500/10 hover:bg-green-500/20 text-green-300 font-ui text-[9px] sm:text-[10px] uppercase tracking-widest transition-all rounded-lg"
+                            >
+                                🏆 Round 2
+                            </button>
+                        )}
                         <button 
                             onClick={() => window.location.href = '/round1'}
                             className="px-3 sm:px-4 py-2 border border-border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-ui text-[9px] sm:text-[10px] uppercase tracking-widest transition-all rounded-lg"
