@@ -35,6 +35,9 @@ export default function Round1Page() {
   const [showAccessDenied, setShowAccessDenied] = useState(false);
   const hasRound2Access = session?.user?.hasRound2Access || false;
   const [open, setOpen] = useState(false);
+  const [roundStatus, setRoundStatus] = useState<'waiting' | 'active' | 'completed'>('waiting');
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [waitingMessage, setWaitingMessage] = useState<string>('');
 
   useEffect(() => {
     if (
@@ -70,9 +73,17 @@ export default function Round1Page() {
           throw new Error(data.error || 'Failed to load questions');
         }
 
-        setGame(data.game);
-        setProgress(data.progress);
-        setTeamName(data.teamName || 'Unknown Team');
+        setRoundStatus(data.roundStatus || 'active');
+        setTimeRemaining(data.timeRemaining || 0);
+        
+        if (data.roundStatus === 'waiting') {
+          setWaitingMessage(data.message || 'Round has not started yet.');
+          setTeamName(data.teamName || 'Unknown Team');
+        } else {
+          setGame(data.game);
+          setProgress(data.progress);
+          setTeamName(data.teamName || 'Unknown Team');
+        }
       } catch (err) {
         setError('Failed to load game data');
       } finally {
@@ -81,7 +92,31 @@ export default function Round1Page() {
     };
 
     loadGameData();
+
+    // Poll for round state updates every 5 seconds
+    const pollInterval = setInterval(loadGameData, 5000);
+    return () => clearInterval(pollInterval);
   }, []);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (roundStatus !== 'active' || timeRemaining <= 0) return;
+
+    const timerInterval = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(timerInterval);
+          setRoundStatus('completed');
+          // Auto-sync on completion
+          secureFetch('/api/sync-score', { method: 'POST' }).catch(() => {});
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerInterval);
+  }, [roundStatus]);
 
   const handleSync = useCallback(async (): Promise<void> => {
     try {
@@ -127,6 +162,17 @@ export default function Round1Page() {
     return indices;
   }, [progress?.bingoLines]);
 
+  // Format time as HH:MM:SS or MM:SS
+  const formatTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050505]">
@@ -140,6 +186,66 @@ export default function Round1Page() {
             Initializing Grid...
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Waiting screen - shown before round starts
+  if (roundStatus === 'waiting') {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/30 bg-purple-500/10 rounded-lg">
+            <span className="w-2 h-2 bg-purple-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+            <span className="text-purple-300 text-xs uppercase tracking-widest font-ui">
+              {teamName}
+            </span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl font-sans font-black tracking-tighter uppercase chrome-text">
+            Round 1
+          </h1>
+
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-2 border-white/20 border-t-purple-500 rounded-full animate-spin" />
+            <p className="text-white/60 font-ui text-sm uppercase tracking-widest">
+              Waiting for round to start...
+            </p>
+            <p className="text-white/40 font-ui text-xs max-w-xs">
+              {waitingMessage}
+            </p>
+          </div>
+
+          <button
+            onClick={handleLogoutClick}
+            className="mt-8 px-6 py-2 border border-white/20 text-white/40 hover:text-white hover:border-white/40 transition-all font-ui text-xs uppercase tracking-widest"
+          >
+            Sign Out
+          </button>
+        </div>
+
+        {/* Logout Modal */}
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="border border-white/10 bg-black p-6 max-w-sm w-full">
+              <p className="font-ui text-sm text-white/80 mb-6">Are you sure you want to sign out?</p>
+              <div className="flex gap-4">
+                <button onClick={() => setShowLogoutModal(false)} className="flex-1 px-4 py-2 border border-white/20 font-ui text-[10px] uppercase tracking-widest text-white/60 hover:text-white hover:border-white/40 transition-all">
+                  Cancel
+                </button>
+                <button onClick={handleConfirmLogout} className="flex-1 px-4 py-2 bg-red-600 font-ui text-[10px] uppercase tracking-widest text-white hover:bg-red-500 transition-all">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <CodeforcesDialog
+          isOpen={open}
+          onClose={() => {}}
+          onSubmit={handleCodeforcesSubmit}
+        />
       </div>
     );
   }
@@ -166,9 +272,23 @@ export default function Round1Page() {
 
             <div className="flex flex-wrap items-center gap-4 font-ui text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-purple-300/40 uppercase">
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-500 animate-pulse rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-                LIVE_CONTEST
+                <span className={`w-1.5 h-1.5 rounded-full ${roundStatus === 'active' ? 'bg-purple-500 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'bg-red-500'}`} />
+                {roundStatus === 'active' ? 'LIVE_CONTEST' : 'COMPLETED'}
               </span>
+              {roundStatus === 'active' && timeRemaining > 0 && (
+                <>
+                  <span className="h-[1px] w-8 sm:w-12 bg-white/10" />
+                  <span className="text-purple-400 font-bold text-sm tracking-wider">
+                    ⏱ {formatTime(timeRemaining)}
+                  </span>
+                </>
+              )}
+              {roundStatus === 'completed' && (
+                <>
+                  <span className="h-[1px] w-8 sm:w-12 bg-white/10" />
+                  <span className="text-red-400">TIME&apos;S UP</span>
+                </>
+              )}
               <span className="h-[1px] w-8 sm:w-12 bg-white/10" />
               <span>GRID: 3×3</span>
               <span className="h-[1px] w-8 sm:w-12 bg-white/10 hidden sm:block" />

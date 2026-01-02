@@ -4,6 +4,7 @@
 export { default as Question } from './Question';
 export { default as TeamScore, TeamScoreR2 } from './TeamScore';
 export { default as Team } from './Team';
+export { default as Round1State } from './Round1State';
 
 // Round 2 Models
 export { default as Round2Round } from './Round2Stage';
@@ -15,6 +16,7 @@ export { default as Round2Question } from './Round2Question';
 export type { IQuestion } from './Question';
 export type { ITeamScore } from './TeamScore';
 export type { ITeam } from './Team';
+export type { IRound1State } from './Round1State';
 export type { IRound2Round } from './Round2Stage';
 export type { IMatch } from './Match';
 export type { IMatchSubmission } from './MatchSubmission';

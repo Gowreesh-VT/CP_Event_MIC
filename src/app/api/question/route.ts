@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { connectDB } from '@/lib/db';
-import { Question, TeamScore, Team } from '@/models';
+import { Question, TeamScore, Team, Round1State } from '@/models';
 import { authOptions } from '../auth/[...nextauth]/route';
 
 function shuffleArray(array: any[]) {
@@ -30,6 +30,42 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
     const teamId = session.user.teamId;
+
+    // Check Round 1 state
+    let round1State = await Round1State.findOne({});
+    if (!round1State) {
+      round1State = await Round1State.create({
+        status: 'waiting',
+        duration: 3600,
+        extendedBy: 0,
+      });
+    }
+
+    // Calculate time remaining
+    let timeRemaining = 0;
+    if (round1State.status === 'active' && round1State.startTime) {
+      const totalDuration = round1State.duration + round1State.extendedBy;
+      const elapsed = Math.floor((Date.now() - round1State.startTime.getTime()) / 1000);
+      timeRemaining = Math.max(0, totalDuration - elapsed);
+
+      // Auto-complete if time expired
+      if (timeRemaining === 0) {
+        round1State.status = 'completed';
+        round1State.endTime = new Date();
+        await round1State.save();
+      }
+    }
+
+    // If round is waiting, don't show grid
+    if (round1State.status === 'waiting') {
+      const team = await Team.findById(teamId);
+      return NextResponse.json({
+        success: true,
+        roundStatus: 'waiting',
+        message: 'Round 1 has not started yet. Please wait for the organizers to start the round.',
+        teamName: team?.teamName || 'Unknown',
+      });
+    }
 
     const team = await Team.findById(teamId);
     if (!team) {
@@ -60,8 +96,8 @@ export async function GET(request: NextRequest) {
         },
       },
       {
-        new: true,   // return existing or newly inserted doc
-        upsert: true // insert if not exists
+        new: true,
+        upsert: true
       }
     );
 
@@ -83,6 +119,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      roundStatus: round1State.status,
+      timeRemaining,
       game: gameData,
       progress: {
         solvedIndices: teamScore.solvedIndices,
@@ -99,3 +137,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
