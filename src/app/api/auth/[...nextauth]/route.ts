@@ -13,12 +13,28 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
   },
 
   secret: process.env.NEXTAUTH_SECRET,
 
   pages: {
     signIn: '/login',
+  },
+
+  // Explicit cookie security configuration
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
 
   callbacks: {
@@ -45,7 +61,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-   
+
 
     //  Runs on login & every request (JWT creation)
     async jwt({ token }) {
@@ -60,7 +76,7 @@ export const authOptions: NextAuthOptions = {
         token.teamName = team.teamName;
         token.setCodeforcesHandle = team.codeforcesHandle == null;
         token.hasRound2Access = team.hasRound2Access || false;
-        token.codeforcesHandle=team.codeforcesHandle||"";
+        token.codeforcesHandle = team.codeforcesHandle || "";
       }
 
       return token;
@@ -74,7 +90,7 @@ export const authOptions: NextAuthOptions = {
         session.user.teamId = token.teamId as string;
         session.user.teamName = token.teamName as string;
         session.user.hasRound2Access = token.hasRound2Access as boolean;
-        session.user.codeforcesHandle=token.codeforcesHandle as string;
+        session.user.codeforcesHandle = token.codeforcesHandle as string;
       }
 
       return session;

@@ -32,8 +32,6 @@ export default function Round2LandingPage() {
       const res = await fetch('/api/Round-2/active-match');
       const data = await res.json();
 
-      console.log('Active match API response:', data);
-
       if (data.matchId) {
 
         router.push(`/round2/match/${data.matchId}`);
@@ -44,10 +42,8 @@ export default function Round2LandingPage() {
         setMessage('No match found. Tournament may not have started yet.');
       } else {
         setMessage(`Unable to find your match. Please contact organizers.`);
-        console.error('Unexpected API response:', data);
       }
-    } catch (error) {
-      console.error('Error fetching active match:', error);
+    } catch {
       setMessage('Error loading match. Please try again.');
     }
   };

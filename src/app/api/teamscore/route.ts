@@ -12,7 +12,7 @@ import { authOptions } from '../auth/[...nextauth]/route';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || !session.user?.teamId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -56,68 +56,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Update
-export async function POST(request: NextRequest) {
-  try {
-    // Session validation
-    const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user?.teamId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    await connectDB();
-
-    const body = await request.json();
-    const {
-      teamId,
-      solvedIndices = [],
-      currentScore = 0,
-      bingoLines = [],
-    } = body;
-
-    if (!teamId) {
-      return NextResponse.json(
-        { success: false, error: 'Team ID required' },
-        { status: 400 }
-      );
-    }
-
-    if (teamId !== session.user.teamId) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden: Cannot update another team\'s score' },
-        { status: 403 }
-      );
-    }
-
-    const teamScore = await TeamScore.findOneAndUpdate(
-      { teamId },
-      {
-        solvedIndices,
-        currentScore,
-        bingoLines,
-        $inc: { syncCount: 1 },
-      },
-      { upsert: true, new: true }
-    );
-
-    return NextResponse.json({
-      success: true,
-      score: {
-        solvedIndices: teamScore.solvedIndices,
-        currentScore: teamScore.currentScore,
-        bingoLines: teamScore.bingoLines,
-        syncCount: teamScore.syncCount,
-      },
-    });
-  } catch (error) {
-    console.error('Team score POST error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Server error updating team score' },
-      { status: 500 }
-    );
-  }
-}
+// ===========================================
+// POST ENDPOINT REMOVED FOR SECURITY
+// ===========================================
+// The POST endpoint has been intentionally removed to prevent score manipulation.
+// Scores can ONLY be updated via /api/sync-score which validates submissions
+// against the Codeforces API to ensure integrity.
+// 
+// If you need to reset or modify scores, use the scripts or
+// direct database access with proper authorization.

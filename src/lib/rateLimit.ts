@@ -2,10 +2,12 @@ import RateLimit from "@/models/MongoDB-RateLimit";
 
 // ===========================================
 // RATE LIMITING UTILITY (MongoDB + TTL)
+// Uses atomic operations to prevent race conditions
 // ===========================================
 
 /**
  * MongoDB-backed rate limiter with TTL
+ * Uses atomic operations to prevent TOCTOU race conditions
  * @param identifier - Unique identifier (IP address or teamId)
  * @param limit - Maximum requests allowed
  * @param windowMs - Time window in milliseconds
@@ -18,43 +20,54 @@ export async function checkRateLimit(
   const now = Date.now();
   const expiresAt = new Date(now + windowMs);
 
-  const record = await RateLimit.findOne({ key: identifier });
+  // Atomic operation: Try to increment counter for existing valid record
+  const existingRecord = await RateLimit.findOneAndUpdate(
+    {
+      key: identifier,
+      expiresAt: { $gt: new Date(now) } // Only match non-expired records
+    },
+    {
+      $inc: { count: 1 } // Atomic increment
+    },
+    {
+      new: true // Return the updated document
+    }
+  );
 
-  // New window or expired (TTL may not have deleted yet)
-  if (!record || record.expiresAt.getTime() < now) {
-    await RateLimit.findOneAndUpdate(
-      { key: identifier },
-      {
+  // If we found and updated an existing record
+  if (existingRecord) {
+    const isLimited = existingRecord.count > limit;
+    return {
+      limited: isLimited,
+      remaining: isLimited ? 0 : Math.max(0, limit - existingRecord.count),
+      resetTime: existingRecord.expiresAt.getTime(),
+    };
+  }
+
+  // No valid record exists - create new one atomically
+  // Use upsert with $setOnInsert to handle race condition on creation
+  const newRecord = await RateLimit.findOneAndUpdate(
+    { key: identifier },
+    {
+      $setOnInsert: {
         key: identifier,
-        count: 1,
         expiresAt,
       },
-      { upsert: true, new: true }
-    );
-
-    return {
-      limited: false,
-      remaining: limit - 1,
-      resetTime: expiresAt.getTime(),
-    };
-  }
-
-  // Limit exceeded
-  if (record.count >= limit) {
-    return {
-      limited: true,
-      remaining: 0,
-      resetTime: record.expiresAt.getTime(),
-    };
-  }
-
-  // Increment counter
-  record.count += 1;
-  await record.save();
+      $set: {
+        count: 1,
+        expiresAt, // Reset expiry for expired records
+      },
+    },
+    {
+      upsert: true,
+      new: true
+    }
+  );
 
   return {
     limited: false,
-    remaining: limit - record.count,
-    resetTime: record.expiresAt.getTime(),
+    remaining: limit - 1,
+    resetTime: newRecord.expiresAt.getTime(),
   };
 }
+
