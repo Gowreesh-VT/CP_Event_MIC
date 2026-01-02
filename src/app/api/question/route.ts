@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { connectDB } from '@/lib/db';
-import { Question, TeamScore, Team } from '@/models';
+import { Question, TeamScore, Team, Round1Session } from '@/models';
 import { authOptions } from '../auth/[...nextauth]/route';
 
 function shuffleArray(array: any[]) {
@@ -29,6 +29,16 @@ export async function GET(request: NextRequest) {
     }
 
     await connectDB();
+
+    // Check if Round 1 is active
+    const round1Session = await Round1Session.findOne();
+    if (!round1Session || !round1Session.isActive) {
+      return NextResponse.json(
+        { success: false, error: 'Round 1 is not active. Questions are only visible during the contest.' },
+        { status: 403 }
+      );
+    }
+
     const teamId = session.user.teamId;
 
     const team = await Team.findById(teamId);

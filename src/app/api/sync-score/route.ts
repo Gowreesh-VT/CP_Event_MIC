@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { connectDB } from '@/lib/db';
-import { TeamScore, Question, Team } from '@/models';
+import { TeamScore, Question, Team, Round1Session } from '@/models';
 import { fetchTeamSubmissions } from '@/services/codeforcesService';
 import { calculateTeamScore } from '@/services/bingoCalculator';
 import { checkRateLimit } from '@/lib/rateLimit';
@@ -26,7 +26,30 @@ export async function POST(request: NextRequest) {
 
     const teamId = session.user.teamId;
 
-await connectDB();
+    await connectDB();
+
+    // Check if Round 1 is active
+    const round1Session = await Round1Session.findOne();
+    if (!round1Session || !round1Session.isActive) {
+      return NextResponse.json<SyncResponse>(
+        { success: false, error: 'Round 1 is not active' },
+        { status: 403 }
+      );
+    }
+
+    // Check if Round 1 has ended
+    const now = new Date();
+    if (round1Session.endTime && now > new Date(round1Session.endTime)) {
+      // Auto-stop if enabled
+      if (round1Session.autoStop) {
+        round1Session.isActive = false;
+        await round1Session.save();
+      }
+      return NextResponse.json<SyncResponse>(
+        { success: false, error: 'Round 1 has ended' },
+        { status: 403 }
+      );
+    }
 
 // Rate limiting: 5 requests per minute per team
 const identifier = teamId;
