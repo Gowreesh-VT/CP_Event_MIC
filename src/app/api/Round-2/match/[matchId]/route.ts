@@ -111,7 +111,7 @@ export async function GET(
           handles: match.sideA_handles,
           score: match.scoreA,
 
-          questions: (teamSide === 'A' || match.status === 'completed')
+          questions: (match.status !== 'waiting' && (teamSide === 'A' || match.status === 'completed'))
             ? (match.questionPoolA as any[]).map(q => ({
               id: q._id,
               contestId: q.contestId,
@@ -132,7 +132,7 @@ export async function GET(
           handles: match.sideB_handles,
           score: match.scoreB,
 
-          questions: (teamSide === 'B' || match.status === 'completed')
+          questions: (match.status !== 'waiting' && (teamSide === 'B' || match.status === 'completed'))
             ? (match.questionPoolB as any[]).map(q => ({
               id: q._id,
               contestId: q.contestId,

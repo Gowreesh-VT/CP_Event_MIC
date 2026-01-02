@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // ===========================================
-// SECURITY MIDDLEWARE
+// SECURITY PROXY (formerly middleware)
 // Implements: CSP, CSRF Protection, Route Guards
 // ===========================================
 
@@ -41,7 +41,7 @@ function generateCSRFToken(): string {
     return Buffer.from(array).toString('hex');
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const response = NextResponse.next();
 
@@ -52,17 +52,20 @@ export async function middleware(request: NextRequest) {
 
     const cspDirectives = [
         `default-src 'self'`,
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+        `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'unsafe-inline'`,
         `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
         `font-src 'self' https://fonts.gstatic.com`,
         `img-src 'self' data: https: blob:`,
-        `connect-src 'self' https://codeforces.com https://accounts.google.com`,
+        `connect-src 'self' https://codeforces.com https://accounts.google.com ws: wss:`,
         `frame-ancestors 'none'`,
         `form-action 'self'`,
         `base-uri 'self'`,
         `object-src 'none'`,
-        `upgrade-insecure-requests`,
     ];
+
+    if (process.env.NODE_ENV === 'production') {
+        cspDirectives.push(`upgrade-insecure-requests`);
+    }
 
     response.headers.set(
         'Content-Security-Policy',
@@ -163,7 +166,7 @@ export async function middleware(request: NextRequest) {
     return response;
 }
 
-// Configure which routes the middleware runs on
+// Configure which routes the proxy runs on
 export const config = {
     matcher: [
         /*

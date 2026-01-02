@@ -15,7 +15,10 @@
     "view-bracket": "tsx scripts/view-bracket.ts",
     "view-top-teams": "tsx scripts/view-top-teams.ts",
     "start-round": "tsx scripts/start-round.ts",
-    "advance-round": "tsx scripts/advance-round.ts"
+    "advance-round": "tsx scripts/advance-round.ts",
+    "start-round1": "tsx scripts/start-round1.ts",
+    "extend-round1": "tsx scripts/extend-round1.ts",
+    "stop-round1": "tsx scripts/stop-round1.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
