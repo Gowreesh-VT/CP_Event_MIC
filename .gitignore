@@ -31,9 +31,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
 !.env.example
-.env.local
 
 
 # vercel
@@ -55,3 +53,4 @@ start-round1.ts
 stop-round1.ts
 extend-round1.ts
 status-round1.ts
+config.bat
