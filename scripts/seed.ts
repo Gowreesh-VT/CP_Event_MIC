@@ -13,15 +13,15 @@ dotenv.config({ path: resolve(__dirname, '../.env.local') });
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 const round1Questions = [
-  { gridIndex: 0, contestId: '1928', problemIndex: 'A', name: 'Rectangle Cutting', points: 10, url: 'https://codeforces.com/contest/1928/problem/A' },
-  { gridIndex: 1, contestId: '1928', problemIndex: 'B', name: 'Equalize', points: 10, url: 'https://codeforces.com/contest/1928/problem/B' },
-  { gridIndex: 2, contestId: '1928', problemIndex: 'C', name: 'Physical Education Lesson', points: 10, url: 'https://codeforces.com/contest/1928/problem/C' },
-  { gridIndex: 3, contestId: '1928', problemIndex: 'D', name: 'Lonely Mountain Dungeons', points: 10, url: 'https://codeforces.com/contest/1928/problem/D' },
-  { gridIndex: 4, contestId: '1928', problemIndex: 'E', name: 'Modular Sequence', points: 10, url: 'https://codeforces.com/contest/1928/problem/E' },
-  { gridIndex: 5, contestId: '1928', problemIndex: 'F', name: 'Digital Patterns', points: 10, url: 'https://codeforces.com/contest/1928/problem/F' },
-  { gridIndex: 6, contestId: '1927', problemIndex: 'A', name: 'Make it White', points: 10, url: 'https://codeforces.com/contest/1927/problem/A' },
-  { gridIndex: 7, contestId: '1927', problemIndex: 'B', name: 'Following the String', points: 10, url: 'https://codeforces.com/contest/1927/problem/B' },
-  { gridIndex: 8, contestId: '1927', problemIndex: 'C', name: 'Choose the Different Ones', points: 10, url: 'https://codeforces.com/contest/1927/problem/C' },
+  { gridIndex: 0, contestId: '1929', problemIndex: 'B', name: 'Sasha and the Drawing', points: 10, url: 'https://codeforces.com/problemset/problem/1929/B' },
+  { gridIndex: 1, contestId: '1405', problemIndex: 'B', name: 'Array Cancellation', points: 10, url: 'https://codeforces.com/problemset/problem/1405/B' },
+  { gridIndex: 2, contestId: '1744', problemIndex: 'D', name: 'Divisibility by 2^n', points: 10, url: 'https://codeforces.com/problemset/problem/1744/D' },
+  { gridIndex: 3, contestId: '1714', problemIndex: 'E', name: 'Add Modulo 10', points: 10, url: 'https://codeforces.com/contest/1714/problem/E' },
+  { gridIndex: 4, contestId: '1703', problemIndex: 'G', name: 'Good Key, Bad Key', points: 10, url: 'https://codeforces.com/contest/1703/problem/G' },
+  { gridIndex: 5, contestId: '1490', problemIndex: 'B', name: 'Balanced Remainders', points: 10, url: 'https://codeforces.com/problemset/problem/1490/B' },
+  { gridIndex: 6, contestId: '327', problemIndex: 'A', name: 'Flipping Game', points: 10, url: 'https://codeforces.com/problemset/problem/327/A' },
+  { gridIndex: 7, contestId: '1854', problemIndex: 'A1', name: 'Dual', points: 10, url: 'https://codeforces.com/contest/1854/problem/A1' },
+  { gridIndex: 8, contestId: '2094', problemIndex: 'F', name: 'Trulimero Trulicina', points: 10, url: 'https://codeforces.com/contest/2094/problem/F' },
 ];
 
 async function seed() {

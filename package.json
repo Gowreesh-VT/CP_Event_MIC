@@ -15,11 +15,17 @@
     "view-bracket": "tsx scripts/view-bracket.ts",
     "view-top-teams": "tsx scripts/view-top-teams.ts",
     "start-round": "tsx scripts/start-round.ts",
+    "start-match": "tsx scripts/start-match.ts",
     "advance-round": "tsx scripts/advance-round.ts",
     "start-round1": "tsx scripts/start-round1.ts",
     "extend-round1": "tsx scripts/extend-round1.ts",
     "stop-round1": "tsx scripts/stop-round1.ts",
-    "status-round1": "tsx scripts/status-round1.ts"
+    "status-round1": "tsx scripts/status-round1.ts",
+    "import-teams": "tsx scripts/import-teams.ts",
+    "delete-teams": "tsx scripts/delete-teams.ts",
+    "format-teams": "tsx scripts/format-teams.ts",
+    "add-teams": "tsx scripts/add-teams.ts",
+    "copy-db": "tsx scripts/copy-db.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
