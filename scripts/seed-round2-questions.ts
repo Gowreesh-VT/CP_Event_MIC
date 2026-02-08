@@ -16,17 +16,17 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 const ROUND_1_QUESTIONS = {
   // Quarterfinals - Side A Questions (4)
   sideA: [
-    { contestId: '1900', problemIndex: 'A', name: 'Cover in Water', url: 'https://codeforces.com/contest/1900/problem/A' },
-    { contestId: '1900', problemIndex: 'B', name: 'Laura and Operations', url: 'https://codeforces.com/contest/1900/problem/B' },
-    { contestId: '1899', problemIndex: 'A', name: 'Game with Integers', url: 'https://codeforces.com/contest/1899/problem/A' },
-    { contestId: '1899', problemIndex: 'B', name: 'Unique Bid Auction', url: 'https://codeforces.com/contest/1899/problem/B' },
+    { contestId: '4', problemIndex: 'A', name: 'Watermelon', url: 'https://codeforces.com/problemset/problem/4/A' },
+    { contestId: '339', problemIndex: 'A', name: 'Helpful Maths', url: 'https://codeforces.com/problemset/problem/339/A' },
+    { contestId: '158', problemIndex: 'B', name: 'Taxi', url: 'https://codeforces.com/problemset/problem/158/B' },
+    { contestId: '2181', problemIndex: 'A', name: 'Alphabet City', url: 'https://codeforces.com/problemset/problem/2181/A' },
   ],
   // Quarterfinals - Side B Questions (4)
   sideB: [
-    { contestId: '1898', problemIndex: 'B', name: 'Ela\'s Fitness and target', url: 'https://codeforces.com/contest/1898/problem/B' },
-    { contestId: '1896', problemIndex: 'A', name: 'Jagged Swaps', url: 'https://codeforces.com/contest/1896/problem/A' },
-    { contestId: '1896', problemIndex: 'B', name: 'Chip and Ribbon', url: 'https://codeforces.com/contest/1896/problem/B' },
-    { contestId: '1895', problemIndex: 'A', name: 'Treasure Chest', url: 'https://codeforces.com/contest/1895/problem/A' },
+    { contestId: '2180', problemIndex: 'B', name: 'Ashmal', url: 'https://codeforces.com/problemset/problem/2180/B' },
+    { contestId: '1689', problemIndex: 'B', name: 'Mystic Permutation', url: 'https://codeforces.com/problemset/problem/1689/B' },
+    { contestId: '2094', problemIndex: 'E', name: 'Boneca Ambalabu', url: 'https://codeforces.com/problemset/problem/2094/E' },
+    { contestId: '455', problemIndex: 'A', name: 'Boredom', url: 'https://codeforces.com/problemset/problem/455/A' },
   ],
 };
 
