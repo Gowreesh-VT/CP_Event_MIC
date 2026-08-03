@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond, Space_Mono } from "next/font/google";
 import { Geist, Geist_Mono } from "next/font/google"; 
+// @ts-ignore: Allow side-effect CSS import without type declarations
 import "./globals.css";
 import Providers from "./providers";
 
@@ -40,9 +41,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Codeforces Bingo | Code Competition",
+  title: "Tech Odyssey | Codeforces Bingo",
   description: "Solve competitive programming problems and complete bingo lines to climb the leaderboard.",
-  keywords: ["codeforces", "bingo", "competitive programming", "coding contest"],
+  keywords: ["codeforces", "bingo", "competitive programming", "coding contest", "tech odyssey"],
 };
 
 import { headers } from "next/headers";
