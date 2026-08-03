@@ -5,8 +5,9 @@ import fs from 'fs';
 import Team from '../src/models/Team';
 
 dotenv.config({ path: resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: resolve(process.cwd(), '.env') });
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL;
 
 interface TeamData {
   teamName: string;

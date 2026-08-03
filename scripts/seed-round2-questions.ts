@@ -9,8 +9,9 @@ import mongoose from 'mongoose';
 import Round2Question from '../src/models/Round2Question';
 
 dotenv.config({ path: resolve(__dirname, '../.env.local') });
+dotenv.config({ path: resolve(__dirname, '../.env') });
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
+const MONGODB_URI = (process.env.MONGODB_URI || process.env.MONGO_URL) as string;
 
 
 const ROUND_1_QUESTIONS = {
