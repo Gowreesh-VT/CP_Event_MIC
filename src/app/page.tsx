@@ -9,7 +9,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#050505] text-white selection:bg-primary selection:text-black">
       <Navbar/>
       <HeroSection />
-      <Prizes />
+      {/* <Prizes /> */}
       {/* <Sponsors />
       <Organizers /> */}
       
