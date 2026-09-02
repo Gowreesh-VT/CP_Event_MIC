@@ -41,7 +41,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tech Odyssey | Codeforces Bingo",
+  title: "Code O Fiesta | Codeforces Bingo",
   description: "Solve competitive programming problems and complete bingo lines to climb the leaderboard.",
   keywords: ["codeforces", "bingo", "competitive programming", "coding contest", "tech odyssey"],
 };
