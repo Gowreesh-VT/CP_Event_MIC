@@ -38,7 +38,7 @@ export default function Navbar() {
           <div className="flex-shrink-0 flex items-center gap-2">
             <Terminal className="text-primary w-6 h-6" />
             <span className="font-ui font-bold text-xl tracking-tighter text-white">
-              TECH<span className="text-primary">_ODYSSEY</span>
+              Code<span className="text-primary">O Fiesta</span>
             </span>
           </div>
           

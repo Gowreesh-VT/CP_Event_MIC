@@ -10,12 +10,12 @@ export default function Home() {
       <Navbar/>
       <HeroSection />
       <Prizes />
-      <Sponsors />
-      <Organizers />
+      {/* <Sponsors />
+      <Organizers /> */}
       
       <footer className="py-8 text-center border-t border-white/10">
         <p className="font-ui text-xs text-gray-500">
-          © {new Date().getFullYear()} TECH_ODYSSEY // TERMINAL_V.2.0
+          © {new Date().getFullYear()} Code O Fiesta // TERMINAL_V.2.0
         </p>
       </footer>
     </main>

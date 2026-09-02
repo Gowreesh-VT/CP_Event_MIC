@@ -41,8 +41,7 @@ export default function Hero() {
           </div>
           
           <h1 className="font-ui text-6xl md:text-9xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-600 mb-6 leading-tight">
-            TECH<br className="md:hidden" />
-            <span className="text-primary">ODYSSEY</span>
+            Code O Fiesta<br className="md:hidden" />
           </h1>
 
           <p className="font-ui text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
